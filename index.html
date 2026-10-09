@@ -1,0 +1,988 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="theme-color" content="#123c2d">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="旅貯金">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="icon" href="icon.png">
+  <title>旅貯金</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- フォントは表示を止めずに後から読み込む（読み込み前は端末の標準フォントで即表示） -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <style>
+    :root {
+      --ink: #17332a;
+      --muted: #6f7d77;
+      --forest: #123c2d;
+      --leaf: #2f7657;
+      --lime: #cde86b;
+      --coral: #ff785f;
+      --cream: #f6f1e6;
+      --paper: #fffdf8;
+      --line: rgba(23, 51, 42, .12);
+      --shadow: 0 20px 55px rgba(18, 60, 45, .11);
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--cream); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 100% -5%, rgba(205,232,107,.45), transparent 34%),
+        linear-gradient(180deg, #f8f5ec 0%, #efe9db 100%);
+      font-family: "Zen Kaku Gothic New", -apple-system, "Hiragino Sans", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, textarea, select { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    .app { width: min(100%, 500px); margin: 0 auto; padding: max(18px, env(safe-area-inset-top)) 18px calc(108px + env(safe-area-inset-bottom)); }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .eyebrow { margin: 0 0 2px; color: var(--leaf); font-size: 11px; font-weight: 900; letter-spacing: .18em; }
+    h1 { margin: 0; font-size: 22px; letter-spacing: -.04em; }
+    .icon-btn { width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 50%; background: rgba(255,253,248,.8); color: var(--ink); display: grid; place-items: center; box-shadow: 0 5px 20px rgba(18,60,45,.05); }
+    .icon-btn.spin svg { animation: spin .75s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hero { position: relative; overflow: hidden; padding: 24px; border-radius: 30px; color: white; background: var(--forest); box-shadow: var(--shadow); }
+    .hero::after { content:""; position:absolute; width:180px; height:180px; right:-72px; top:-84px; border:34px solid rgba(205,232,107,.13); border-radius:50%; }
+    .hero-label { margin: 0 0 8px; color: rgba(255,255,255,.68); font-size: 12px; font-weight: 700; }
+    .hero-row { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; }
+    .hero-amount { margin:0; font-family:"DM Serif Display", serif; font-size:44px; line-height:1; letter-spacing:-.04em; }
+    .hero-amount small { font: 700 16px "Zen Kaku Gothic New", sans-serif; margin-left:4px; }
+    .ring { --p: 0; flex:0 0 auto; width:76px; height:76px; border-radius:50%; display:grid; place-items:center; background:conic-gradient(var(--lime) calc(var(--p) * 1%), rgba(255,255,255,.12) 0); position:relative; }
+    .ring::before { content:""; position:absolute; inset:8px; border-radius:50%; background:var(--forest); }
+    .ring b { position:relative; font-size:15px; }
+    .hero-sub { display:flex; justify-content:space-between; gap:12px; margin-top:22px; padding-top:18px; border-top:1px solid rgba(255,255,255,.13); }
+    .hero-sub span { display:block; color:rgba(255,255,255,.6); font-size:10px; margin-bottom:3px; }
+    .hero-sub b { font-size:14px; }
+    .section-title { display:flex; align-items:end; justify-content:space-between; margin:25px 2px 11px; }
+    .section-title h2 { margin:0; font-size:17px; letter-spacing:-.03em; }
+    .section-title span { color:var(--muted); font-size:11px; }
+    .next-card { background:var(--paper); border:1px solid var(--line); border-radius:24px; padding:20px; box-shadow:0 12px 35px rgba(18,60,45,.06); }
+    .next-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .date-pill { display:inline-flex; gap:6px; align-items:center; color:var(--leaf); background:#e7f1e8; border-radius:999px; padding:7px 10px; font-size:11px; font-weight:900; }
+    .days { color:var(--coral); font-weight:900; font-size:12px; }
+    .need { margin:17px 0 4px; color:var(--muted); font-size:12px; }
+    .need-amount { margin:0; font-family:"DM Serif Display", serif; font-size:34px; }
+    .need-amount small { font:700 13px "Zen Kaku Gothic New", sans-serif; }
+    .daily { margin:12px 0 0; padding:11px 13px; border-radius:13px; background:#e7f1e8; color:#285d47; font-size:12px; font-weight:700; line-height:1.6; }
+    .pace-status { margin:10px 0 0; font-size:12px; font-weight:900; color:var(--leaf); }
+    .pace-status.behind { color:var(--coral); }
+    .payment { display:grid; grid-template-columns:1fr auto; gap:8px 14px; margin-top:15px; padding-top:15px; border-top:1px dashed var(--line); }
+    .payment span { color:var(--muted); font-size:11px; }
+    .payment strong { grid-column:1; font-size:13px; }
+    .payment b { grid-column:2; grid-row:1 / 3; align-self:center; font-size:12px; }
+    .month-card { padding:18px; border-radius:22px; background:rgba(255,253,248,.75); border:1px solid var(--line); }
+    .month-row { display:flex; justify-content:space-between; align-items:baseline; }
+    .month-row b { font-size:18px; }
+    .month-row span { color:var(--muted); font-size:11px; }
+    .bar { height:12px; margin-top:13px; background:#e3ded2; border-radius:999px; overflow:hidden; }
+    .bar > i { display:block; height:100%; width:0; border-radius:inherit; background:linear-gradient(90deg,var(--leaf),var(--lime)); transition:width .8s cubic-bezier(.2,.8,.2,1); }
+    .month-foot { display:flex; justify-content:space-between; margin-top:8px; color:var(--muted); font-size:11px; }
+    .balance-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+    .balance-mini { width:100%; min-height:112px; padding:15px; border-radius:20px; color:var(--ink); text-align:left; background:var(--paper); border:1px solid var(--line); box-shadow:0 8px 24px rgba(18,60,45,.045); cursor:pointer; transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease; }
+    .balance-mini:active { transform:scale(.98); }
+    .balance-mini:focus-visible { outline:3px solid rgba(47,118,87,.2); outline-offset:2px; }
+    .balance-mini header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .balance-mini header b { display:grid; place-items:center; width:38px; height:38px; border-radius:13px; color:white; background:var(--leaf); font-size:12px; }
+    .balance-mini header span { color:var(--muted); font-size:9px; text-align:right; }
+    .balance-mini strong { display:block; margin-top:12px; font-family:"DM Serif Display",serif; font-size:22px; letter-spacing:-.03em; }
+    .balance-mini strong.minus { color:var(--coral); }
+    .balance-mini p { margin:3px 0 0; color:var(--muted); font-size:9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .balance-mini .tap-hint { display:block; margin-top:9px; color:var(--leaf); font-size:9px; font-weight:900; }
+    .timeline { display:grid; gap:10px; }
+    .milestone { display:grid; grid-template-columns:48px 1fr auto; gap:12px; align-items:center; padding:13px 14px; border-radius:17px; background:rgba(255,253,248,.62); border:1px solid transparent; }
+    .milestone.active { background:var(--paper); border-color:rgba(47,118,87,.28); box-shadow:0 8px 24px rgba(18,60,45,.06); }
+    .milestone.done { opacity:.55; }
+    .month { width:44px; height:44px; display:grid; place-items:center; border-radius:14px; background:#ebe5d9; font-weight:900; font-size:12px; }
+    .milestone.active .month { color:white; background:var(--leaf); }
+    .milestone h3 { margin:0 0 3px; font-size:13px; }
+    .milestone p { margin:0; color:var(--muted); font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:210px; }
+    .milestone > b { font-size:11px; text-align:right; }
+    .review-list { display:grid; gap:12px; }
+    .review-empty { padding:28px 18px; border-radius:20px; color:#285d47; background:#e7f1e8; text-align:center; font-size:12px; font-weight:700; }
+    .review-card { padding:17px; border-radius:22px; background:var(--paper); border:1px solid var(--line); box-shadow:0 10px 30px rgba(18,60,45,.05); }
+    .review-head { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:start; }
+    .review-head h3 { margin:0; font-size:15px; line-height:1.45; }
+    .review-head p { margin:3px 0 0; color:var(--muted); font-size:10px; }
+    .review-amount { color:var(--coral); font-size:16px; white-space:nowrap; }
+    .review-product { margin:10px 0 0; padding:10px 11px; border-radius:12px; color:#466057; background:#f3efe5; font-size:10px; line-height:1.55; }
+    .suggestion { display:inline-flex; margin-top:9px; padding:5px 8px; border-radius:999px; color:#285d47; background:#e7f1e8; font-size:9px; font-weight:900; }
+    .suggestion.change { color:#844230; background:#fff0eb; }
+    .field-label { display:block; margin:13px 0 6px; color:var(--muted); font-size:10px; font-weight:900; }
+    .review-card select, .review-card input { width:100%; min-height:45px; border:1px solid var(--line); border-radius:13px; color:var(--ink); background:#faf7ef; padding:10px 12px; outline:none; }
+    .review-card select:focus, .review-card input:focus { border-color:var(--leaf); box-shadow:0 0 0 3px rgba(47,118,87,.1); }
+    .fixed-toggle { display:flex; align-items:center; gap:10px; margin-top:13px; padding:12px; border-radius:14px; color:#285d47; background:#e7f1e8; font-size:11px; font-weight:900; }
+    .fixed-toggle input { width:20px; min-height:20px; height:20px; margin:0; accent-color:var(--leaf); }
+    .fixed-fields { display:none; grid-template-columns:1fr 1fr; gap:0 9px; margin-top:3px; }
+    .fixed-fields.open { display:grid; }
+    .fixed-fields .wide { grid-column:1 / -1; }
+    .review-save { width:100%; min-height:47px; margin-top:14px; border:0; border-radius:14px; color:white; background:var(--forest); font-size:12px; font-weight:900; }
+    .review-save:disabled { opacity:.55; }
+    .mail-panel { padding:8px; border:1px solid var(--line); border-radius:24px; background:rgba(255,253,248,.68); box-shadow:0 10px 32px rgba(18,60,45,.05); }
+    .mail-tabs { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:4px; border-radius:17px; background:#ebe5d9; }
+    .mail-tab { min-height:43px; border:0; border-radius:13px; color:var(--muted); background:transparent; font-size:11px; font-weight:900; }
+    .mail-tab.active { color:white; background:var(--forest); box-shadow:0 7px 18px rgba(18,60,45,.18); }
+    .mail-pane { padding:10px 2px 2px; }
+    .mail-pane.hidden { display:none; }
+    .mail-note { margin:2px 4px 12px; color:var(--muted); font-size:10px; line-height:1.65; }
+    .mail-list { display:grid; gap:10px; }
+    .mail-card { padding:15px; border:1px solid var(--line); border-radius:19px; background:var(--paper); }
+    .mail-card-head { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:start; }
+    .mail-card-head h3 { margin:0; font-size:14px; line-height:1.45; }
+    .mail-card-head p { margin:3px 0 0; color:var(--muted); font-size:9px; }
+    .mail-card-head b { color:var(--coral); font-size:14px; white-space:nowrap; }
+    .mail-meta { margin:9px 0 0; padding:9px 10px; border-radius:11px; color:#52635d; background:#f3efe5; font-size:9px; line-height:1.5; }
+    .mail-badges { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+    .mail-badge { padding:4px 7px; border-radius:999px; color:#52635d; background:#ebe5d9; font-size:8px; font-weight:900; }
+    .mail-badge.ok { color:#285d47; background:#e7f1e8; }
+    .mail-edit-grid { display:grid; grid-template-columns:1fr 1.4fr; gap:9px; }
+    .mail-card select, .mail-card input[type="text"] { width:100%; min-height:43px; border:1px solid var(--line); border-radius:12px; color:var(--ink); background:#faf7ef; padding:9px 10px; outline:none; }
+    .mail-checks { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:12px; }
+    .mail-check { display:flex; align-items:center; gap:8px; min-height:42px; margin:0; padding:9px 10px; border-radius:12px; color:#285d47; background:#e7f1e8; font-size:9px; font-weight:900; }
+    .mail-check input { width:18px; height:18px; margin:0; accent-color:var(--leaf); }
+    .mail-fixed-fields { display:none; grid-template-columns:1fr 1fr; gap:0 8px; }
+    .mail-fixed-fields.open { display:grid; }
+    .mail-fixed-fields .wide { grid-column:1 / -1; }
+    .mail-save { width:100%; min-height:45px; margin-top:12px; border:0; border-radius:13px; color:white; background:var(--forest); font-size:11px; font-weight:900; }
+    .mail-save:disabled { opacity:.55; }
+    .sync-status { display:none; margin:10px 4px 0; padding:9px 11px; border-radius:12px; color:#285d47; background:#e7f1e8; font-size:10px; font-weight:900; line-height:1.5; }
+    .sync-status.show { display:block; }
+    .sync-status.warn { color:#844230; background:#fff0eb; }
+    .load-more { width:100%; min-height:46px; margin-top:10px; border:1px solid var(--line); border-radius:14px; color:var(--leaf); background:var(--paper); font-size:11px; font-weight:900; }
+    .activity { display:grid; gap:8px; }
+    .activity-empty { padding:30px 18px; text-align:center; color:var(--muted); border:1px dashed var(--line); border-radius:18px; font-size:12px; }
+    .record { display:grid; grid-template-columns:42px 1fr auto; gap:11px; align-items:center; padding:12px 3px; border-bottom:1px solid var(--line); }
+    .record-icon { width:40px; height:40px; border-radius:13px; display:grid; place-items:center; background:#e7f1e8; color:var(--leaf); font-weight:900; }
+    .record.pay .record-icon { background:#fff0eb; color:var(--coral); }
+    .record h3 { margin:0 0 2px; font-size:13px; }
+    .record p { margin:0; color:var(--muted); font-size:10px; }
+    .record b { font-size:13px; }
+    .record.pay b { color:var(--coral); }
+    .updated { margin:22px 0 0; text-align:center; color:var(--muted); font-size:9px; }
+    .fab { position:fixed; z-index:10; left:50%; bottom:calc(18px + env(safe-area-inset-bottom)); transform:translateX(-50%); width:min(calc(100% - 36px),464px); min-height:58px; border:0; border-radius:18px; color:white; background:var(--forest); box-shadow:0 15px 40px rgba(18,60,45,.25); font-weight:900; font-size:15px; letter-spacing:.02em; }
+    .fab:active { transform:translateX(-50%) scale(.98); }
+    .overlay { position:fixed; z-index:20; inset:0; display:none; align-items:flex-end; justify-content:center; background:rgba(11,28,22,.48); backdrop-filter:blur(4px); }
+    .overlay.open { display:flex; animation:fade .2s ease; }
+    .sheet { width:min(100%,500px); max-height:92vh; overflow:auto; padding:22px 20px calc(22px + env(safe-area-inset-bottom)); border-radius:28px 28px 0 0; background:var(--paper); animation:rise .28s ease; }
+    @keyframes fade { from { opacity:0; } }
+    @keyframes rise { from { transform:translateY(30px); opacity:0; } }
+    .sheet-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+    .sheet-head h2 { margin:0; font-size:20px; }
+    .close { border:0; background:#eee8dc; width:36px; height:36px; border-radius:50%; font-size:18px; }
+    .detail-sheet { height:min(88vh,780px); display:flex; flex-direction:column; overflow:hidden; }
+    .detail-sheet .sheet-head { flex:0 0 auto; margin-bottom:10px; }
+    .detail-guide { flex:0 0 auto; margin:0 0 12px; padding:10px 12px; border-radius:13px; color:#285d47; background:#e7f1e8; font-size:10px; line-height:1.6; }
+    .month-detail-list { flex:1; min-height:160px; overflow:auto; display:grid; align-content:start; gap:8px; padding:1px 2px 8px; overscroll-behavior:contain; }
+    .detail-loading { padding:40px 12px; color:var(--muted); text-align:center; font-size:12px; font-weight:700; }
+    .day-row { display:grid; grid-template-columns:48px 1fr auto; gap:10px; align-items:center; padding:12px; border:1px solid var(--line); border-radius:16px; background:#faf7ef; }
+    .day-date { display:grid; place-items:center; width:46px; height:46px; border-radius:14px; color:white; background:var(--leaf); }
+    .day-date b { font-size:13px; line-height:1; }
+    .day-date span { margin-top:3px; color:rgba(255,255,255,.7); font-size:8px; }
+    .day-flow { display:grid; gap:3px; }
+    .day-flow p { display:flex; justify-content:space-between; gap:8px; margin:0; color:var(--muted); font-size:9px; }
+    .day-flow b { color:var(--ink); font-size:11px; }
+    .day-flow .expense { color:var(--coral); }
+    .day-balance { text-align:right; }
+    .day-balance span { display:block; color:var(--muted); font-size:8px; }
+    .day-balance b { display:block; margin-top:2px; font-family:"DM Serif Display",serif; font-size:15px; white-space:nowrap; }
+    .day-breakdown { grid-column:2 / -1; display:flex; flex-wrap:wrap; gap:5px; margin-top:-3px; }
+    .day-breakdown span { padding:4px 7px; border-radius:999px; color:#52635d; background:#ebe5d9; font-size:8px; }
+    .form-sheet { height:min(92vh,850px); display:flex; flex-direction:column; overflow:hidden; }
+    .form-sheet .sheet-head { flex:0 0 auto; margin-bottom:12px; }
+    .form-guide { flex:0 0 auto; margin:0 0 12px; padding:10px 12px; border-radius:13px; color:#285d47; background:#e7f1e8; font-size:11px; font-weight:700; line-height:1.65; }
+    .form-frame-wrap { position:relative; flex:1; min-height:520px; overflow:hidden; border:1px solid var(--line); border-radius:18px; background:#f3efe5; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+    .form-frame-wrap iframe { position:relative; z-index:2; display:block; width:100%; height:100%; border:0; background:white; }
+    .form-loading { position:absolute; z-index:1; inset:0; display:grid; place-items:center; color:var(--muted); font-size:12px; font-weight:700; }
+    .form-frame-wrap.loaded .form-loading { display:none; }
+    .types { display:grid; grid-template-columns:repeat(2,1fr); gap:7px; margin-bottom:17px; }
+    .type { border:1px solid var(--line); border-radius:13px; background:white; padding:10px 4px; color:var(--muted); font-size:11px; font-weight:700; }
+    .type.selected { color:white; background:var(--leaf); border-color:var(--leaf); }
+    label { display:block; margin:14px 0 6px; color:var(--muted); font-size:11px; font-weight:700; }
+    input, textarea { width:100%; border:1px solid var(--line); border-radius:14px; background:#faf7ef; color:var(--ink); padding:13px 14px; outline:none; }
+    input:focus, textarea:focus { border-color:var(--leaf); box-shadow:0 0 0 3px rgba(47,118,87,.1); }
+    .amount-wrap { position:relative; }
+    .amount-wrap::after { content:"円"; position:absolute; right:14px; top:13px; font-weight:700; }
+    .save { width:100%; margin-top:20px; min-height:52px; border:0; border-radius:16px; color:white; background:var(--forest); font-weight:900; }
+    .save:disabled { opacity:.55; }
+    .toast { position:fixed; z-index:30; top:calc(18px + env(safe-area-inset-top)); left:50%; transform:translate(-50%,-20px); padding:11px 16px; border-radius:13px; color:white; background:var(--forest); box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:.25s; font-size:12px; font-weight:700; white-space:nowrap; }
+    .toast.show { transform:translate(-50%,0); opacity:1; }
+    .setup { position:fixed; inset:0; z-index:50; display:none; place-items:center; padding:24px; background:var(--cream); }
+    .setup.open { display:grid; }
+    .setup-card { width:min(100%,420px); padding:24px; border-radius:24px; background:var(--paper); border:1px solid var(--line); box-shadow:var(--shadow); }
+    .setup-card h2 { margin:0 0 10px; font-size:18px; }
+    .setup-card p { margin:0 0 14px; color:var(--muted); font-size:12px; line-height:1.7; }
+    .skeleton { position:fixed; inset:0; z-index:40; display:grid; place-items:center; background:var(--cream); }
+    .skeleton div { width:46px; height:46px; border-radius:50%; border:4px solid rgba(18,60,45,.13); border-top-color:var(--forest); animation:spin .8s linear infinite; }
+    @media (min-width:700px) { .app { padding-top:32px; } .fab { bottom:26px; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; } }
+  </style>
+</head>
+<body>
+  <div class="skeleton" id="loading"><div></div></div>
+  <main class="app">
+    <header class="topbar">
+      <div><p class="eyebrow">HA'PA LUA 2027</p><h1>旅の準備ノート</h1></div>
+      <button class="icon-btn" id="refresh" aria-label="更新">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6v5h-5"/><path d="M19 11a7 7 0 1 0 1 5"/></svg>
+      </button>
+    </header>
+
+    <section class="hero">
+      <p class="hero-label">今日時点の実残高（予定支払いはまだ引かない）</p>
+      <div class="hero-row">
+        <p class="hero-amount"><span id="prepared">0</span><small>円</small></p>
+        <div class="ring" id="ring"><b id="percent">0%</b></div>
+      </div>
+      <div class="hero-sub">
+        <div><span>残高＋旅行費支払い済み</span><b id="currentSavings">0円</b></div>
+        <div><span>旅行費支払い済み</span><b id="paid">0円</b></div>
+      </div>
+    </section>
+
+    <div class="section-title"><h2>今日の予算</h2><span id="budgetBasis">月末目標から逆算</span></div>
+    <section class="next-card">
+      <div class="next-head"><span class="date-pill" id="deadline">—</span><span class="days" id="daysLeft">—</span></div>
+      <p class="need">今日、予定外に追加で使っていい金額</p>
+      <p class="need-amount"><span id="nextGap">0</span><small> 円</small></p>
+      <p class="daily" id="daily">生活費・固定費・旅行費をすべて含めて計算しています。</p>
+      <p class="pace-status" id="paceStatus">予算を計算中</p>
+      <div class="payment"><span>今月、予定外に追加で使える金額</span><strong id="payment">月末までの合計</strong><b id="estimate">—</b></div>
+    </section>
+
+    <div class="section-title"><h2>メール用を操作</h2><span>スプレッドシートと同期</span></div>
+    <section class="mail-panel">
+      <div class="mail-tabs" role="tablist" aria-label="メール用の表示切替">
+        <button class="mail-tab active" id="reviewTab" type="button" role="tab" aria-selected="true" data-mail-tab="review">要確認 <span id="reviewCount"></span></button>
+        <button class="mail-tab" id="mailListTab" type="button" role="tab" aria-selected="false" data-mail-tab="all">メール用一覧</button>
+      </div>
+      <p class="sync-status" id="syncStatus" role="status" aria-live="polite"></p>
+      <div class="mail-pane" id="reviewPane" role="tabpanel">
+        <p class="mail-note">直近14日以内の初回店舗・未判定・固定費変更候補だけを表示します。履歴参照済みの明細は表示しません。</p>
+        <section class="review-list" id="reviewList"></section>
+      </div>
+      <div class="mail-pane hidden" id="mailListPane" role="tabpanel">
+        <p class="mail-note">「メール用」と同じデータです。今回だけ項目を変える場合は、ここで項目を選び直して保存してください。</p>
+        <div class="mail-list" id="mailList"><div class="detail-loading">「メール用一覧」を開くと読み込みます。</div></div>
+        <button class="load-more" id="loadMoreMail" type="button" hidden>続きを読み込む</button>
+      </div>
+    </section>
+
+    <div class="section-title"><h2>旅行後の残高見込み</h2><span id="monthLabel">—</span></div>
+    <section class="month-card">
+      <div class="month-row"><b id="monthActual">0円</b><span id="monthTarget">目標 0円</span></div>
+      <div class="bar"><i id="monthBar"></i></div>
+      <div class="month-foot"><span id="monthGap">あと 0円</span><span id="monthPercent">0%</span></div>
+    </section>
+
+    <div class="section-title"><h2>9〜12月の残高</h2><span>支払い予定反映後</span></div>
+    <section class="balance-grid" id="yearEndBalances"></section>
+
+    <div class="section-title"><h2>月ごとの資金繰り</h2><span>生活費・旅行費込み</span></div>
+    <section class="timeline" id="timeline"></section>
+
+    <div class="section-title"><h2>最近の自動記録</h2><span id="recordCount"></span></div>
+    <section class="activity" id="activity"></section>
+    <p class="updated">「ハワイ関係」に分類された支払い・返金を家計簿から自動反映します。</p>
+    <p class="updated" id="updated"></p>
+  </main>
+  <button class="fab" id="openHouseholdForm" type="button">＋ 家計簿を入力する</button>
+
+  <div class="overlay" id="monthDetailOverlay" role="dialog" aria-modal="true" aria-labelledby="monthDetailTitle">
+    <section class="sheet detail-sheet">
+      <div class="sheet-head">
+        <div><p class="eyebrow">DAILY BALANCE</p><h2 id="monthDetailTitle">月別の詳細</h2></div>
+        <button class="close" id="closeMonthDetail" type="button" aria-label="月別詳細を閉じる">×</button>
+      </div>
+      <p class="detail-guide">各日の金額は月次シートの1〜9行目から取得します。月末カードは、ここに未払いの旅行予定を追加で差し引いた見込みです。</p>
+      <div class="month-detail-list" id="monthDetailList"><div class="detail-loading">読み込んでいます…</div></div>
+    </section>
+  </div>
+
+  <div class="overlay" id="householdFormOverlay" role="dialog" aria-modal="true" aria-labelledby="householdFormTitle">
+    <section class="sheet form-sheet">
+      <div class="sheet-head">
+        <div><p class="eyebrow">QUICK ENTRY</p><h2 id="householdFormTitle">家計簿を入力</h2></div>
+        <button class="close" id="closeHouseholdForm" type="button" aria-label="入力フォームを閉じる">×</button>
+      </div>
+      <p class="form-guide">ハワイ関連の支出は「ハワイ関係」を選ぶと、旅行費にも自動反映されます。</p>
+      <div class="form-frame-wrap" id="householdFormWrap">
+        <div class="form-loading">フォームを読み込んでいます…</div>
+        <iframe id="householdFormFrame" title="家計簿入力フォーム" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+    </section>
+  </div>
+  <div class="toast" id="toast"></div>
+  <div class="setup" id="setup" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <section class="setup-card">
+      <h2 id="setupTitle">はじめの設定</h2>
+      <p id="setupMessage">PCでスプレッドシート「計画」を開き、メニュー「家計自動化 → スマホアプリの設定QRを表示」のQRを読み取ってください。リンクを貼り付けても設定できます。</p>
+      <input id="setupInput" type="text" autocomplete="off" placeholder="設定リンクを貼り付け">
+      <button class="save" id="setupSave" type="button">設定する</button>
+    </section>
+  </div>
+
+  <script>
+    // GitHub Pages上のホーム画面アプリとして開いた場合は、google.script.runの代わりにJSON APIを呼ぶ。
+    // Google版（HtmlService）では本物のgoogle.script.runがあるため、この切替は使われない。
+    const IS_STANDALONE_SITE = !(window.google && window.google.script && window.google.script.run);
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxzPPo7xcUefx298ln6WhHbsl06PljTVba7y4NCMu1W5TGpBoL1d1LXwllsqymIsFVjew/exec';
+    const API_TOKEN_KEY = 'hapalua-api-token-v1';
+    let API_TOKEN = '';
+
+    function tokenFromText(text) {
+      const value = String(text || '').trim();
+      const match = value.match(/[#&?]t=([A-Za-z0-9]+)/);
+      if (match) return match[1];
+      return /^[A-Za-z0-9]{32,}$/.test(value) ? value : '';
+    }
+
+    function resolveApiToken() {
+      const fromUrl = tokenFromText(location.hash);
+      try {
+        if (fromUrl) localStorage.setItem(API_TOKEN_KEY, fromUrl);
+        return fromUrl || localStorage.getItem(API_TOKEN_KEY) || '';
+      } catch (error) {
+        return fromUrl;
+      }
+    }
+
+    function showTokenSetup(message) {
+      if (message) document.getElementById('setupMessage').textContent = message;
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('setup').classList.add('open');
+    }
+
+    if (IS_STANDALONE_SITE) {
+      API_TOKEN = resolveApiToken();
+      const getActions = {
+        getSavingsAppData: (includeReview, forceFresh) => ['data', { force: forceFresh ? '1' : '0' }],
+        getSavingsReviewData: () => ['review', {}],
+        getSavingsMailPage: page => ['mail', { page: String(page) }],
+        getSavingsMonthDetail: month => ['month', { month: month }]
+      };
+      const postActions = {
+        queueSavingsEdits: edits => ['queue', { edits: edits }, true],
+        applySavingsEdits: () => ['apply', {}, false]
+      };
+      const readApi = request => request
+        .then(response => {
+          if (!response.ok) throw new Error(`通信に失敗しました（${response.status}）`);
+          return response.json();
+        })
+        .then(body => {
+          if (!body.ok) {
+            if (body.unauthorized) showTokenSetup(body.error);
+            throw new Error(body.error || '処理に失敗しました');
+          }
+          return body.data;
+        });
+      const postApi = (action, extra, keepalive) => readApi(fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ t: API_TOKEN, action: action }, extra)),
+        // keepaliveは送信直後にアプリを閉じても通信を続けさせる。非対応の端末では通常送信で再試行する。
+        keepalive: keepalive
+      }));
+      window.google = { script: { get run() {
+        let onSuccess = () => {};
+        let onFailure = () => {};
+        const runner = {
+          withSuccessHandler(fn) { onSuccess = fn; return runner; },
+          withFailureHandler(fn) { onFailure = fn; return runner; }
+        };
+        Object.keys(getActions).forEach(name => {
+          runner[name] = (...args) => {
+            const [api, params] = getActions[name](...args);
+            const query = new URLSearchParams(Object.assign({ api: api, t: API_TOKEN }, params));
+            readApi(fetch(`${API_URL}?${query}`)).then(onSuccess, onFailure);
+          };
+        });
+        Object.keys(postActions).forEach(name => {
+          runner[name] = (...args) => {
+            const [action, extra, keepalive] = postActions[name](...args);
+            postApi(action, extra, keepalive)
+              .catch(error => keepalive && error instanceof TypeError ? postApi(action, extra, false) : Promise.reject(error))
+              .then(onSuccess, onFailure);
+          };
+        });
+        return runner;
+      } } };
+    }
+
+    const HOUSEHOLD_FORM_URL = 'https://docs.google.com/forms/d/1jVfgbooPMMyNgVU-26soQHvtfQsee11KNCYaPwtp_Rw/viewform?embedded=true';
+    const yen = value => new Intl.NumberFormat('ja-JP').format(Number(value || 0));
+    const prettyDate = key => {
+      const [y,m,d] = key.split('-');
+      return `${Number(m)}月${Number(d)}日`;
+    };
+    const escapeHtml = text => String(text || '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const el = id => document.getElementById(id);
+    let currentData = null;
+    let mailRows = [];
+    let mailPage = 1;
+    let mailLoaded = false;
+    let mailOptions = { itemOptions:{ expense:[], income:[] }, fixedCategories:[], intervals:[] };
+    const APP_CACHE_KEY = 'hapalua-savings-app-v2';
+    const APP_CACHE_MAX_AGE_MS = 36 * 60 * 60 * 1000;
+    // 確定・変更は端末の送信待ち(outbox)へ先に保存し、画面はすぐ次へ進める。
+    // サーバーが受け付けるまで端末に残すため、送信前にアプリを閉じても次回起動時に再送される。
+    const OUTBOX_KEY = 'hapalua-outbox-v1';
+    const SAVED_KEYS_KEY = 'hapalua-saved-keys-v1';
+    const SAVED_KEY_TTL_MS = 30 * 60 * 1000;
+    let outboxSending = false;
+    let outboxRetryTimer = null;
+    let refreshAfterSaveTimer = null;
+
+    function readStore(key, fallback) {
+      try { return JSON.parse(localStorage.getItem(key) || 'null') || fallback; } catch (error) { return fallback; }
+    }
+    function writeStore(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch (error) { /* 保存できなくても送信は続ける */ }
+    }
+    function newEditId() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+    function savedKeys() {
+      const now = Date.now();
+      const keys = readStore(SAVED_KEYS_KEY, {});
+      Object.keys(keys).forEach(key => { if (now - keys[key] > SAVED_KEY_TTL_MS) delete keys[key]; });
+      return keys;
+    }
+    function markSaved(key) {
+      const keys = savedKeys();
+      keys[key] = Date.now();
+      writeStore(SAVED_KEYS_KEY, keys);
+    }
+    function unmarkSaved(key) {
+      const keys = savedKeys();
+      delete keys[key];
+      writeStore(SAVED_KEYS_KEY, keys);
+    }
+
+    function setSyncStatus(text, warn) {
+      const box = el('syncStatus');
+      box.textContent = text || '';
+      box.classList.toggle('show', Boolean(text));
+      box.classList.toggle('warn', Boolean(warn));
+    }
+
+    function enqueueEdit(kind, payload) {
+      const outbox = readStore(OUTBOX_KEY, []);
+      outbox.push({ id: newEditId(), kind: kind, payload: payload, createdAt: Date.now() });
+      writeStore(OUTBOX_KEY, outbox);
+      flushOutbox();
+    }
+
+    function flushOutbox() {
+      const outbox = readStore(OUTBOX_KEY, []);
+      if (outboxSending) return;
+      if (!outbox.length) return;
+      outboxSending = true;
+      clearTimeout(outboxRetryTimer);
+      setSyncStatus(`保存中…（${outbox.length}件）`);
+      const sending = outbox.slice(0, 30);
+      google.script.run
+        .withSuccessHandler(result => {
+          const doneIds = new Set((result.accepted || []).concat((result.rejected || []).map(item => item.id)));
+          writeStore(OUTBOX_KEY, readStore(OUTBOX_KEY, []).filter(item => !doneIds.has(item.id)));
+          (result.rejected || []).forEach(item => {
+            const edit = sending.find(entry => entry.id === item.id);
+            if (edit) unmarkSaved(edit.payload.key);
+            toast(item.message || '保存できませんでした');
+          });
+          outboxSending = false;
+          if (readStore(OUTBOX_KEY, []).length) return flushOutbox();
+          applyQueuedEdits();
+        })
+        .withFailureHandler(() => {
+          outboxSending = false;
+          setSyncStatus(`通信できませんでした。${readStore(OUTBOX_KEY, []).length}件をこの端末に保管し、自動で再送します。`, true);
+          outboxRetryTimer = setTimeout(flushOutbox, 8000);
+        })
+        .queueSavingsEdits(sending);
+    }
+
+    // サーバーの保存待ちリストをシートへ反映する。ここで画面を閉じても、15分以内のメール取込で反映される。
+    function applyQueuedEdits() {
+      setSyncStatus('シートへ反映中…（このまま閉じても大丈夫です）');
+      google.script.run
+        .withSuccessHandler(result => {
+          (result.failed || []).forEach(item => {
+            if (item.key) unmarkSaved(item.key);
+            toast(item.message || '反映できない明細がありました');
+          });
+          if (result.waiting) {
+            setSyncStatus('メール自動取込の処理中です。保存は受付済みで、終わり次第自動で反映されます。');
+            outboxRetryTimer = setTimeout(applyQueuedEdits, 30000);
+            return;
+          }
+          setSyncStatus('');
+          clearTimeout(refreshAfterSaveTimer);
+          refreshAfterSaveTimer = setTimeout(() => loadData(true), 600);
+        })
+        .withFailureHandler(() => {
+          setSyncStatus('保存は受付済みです。シートへの反映は自動で行われます（最大15分）。');
+        })
+        .applySavingsEdits();
+    }
+
+    function saveCachedData(data) {
+      try {
+        localStorage.setItem(APP_CACHE_KEY, JSON.stringify({ savedAt: Date.now(), data: data }));
+      } catch (error) {
+        // Safariのプライベートモード等で保存できなくても、通常の読込は継続する。
+      }
+    }
+
+    function restoreCachedData() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(APP_CACHE_KEY) || 'null');
+        if (!cached || !cached.data || Date.now() - Number(cached.savedAt || 0) > APP_CACHE_MAX_AGE_MS) return false;
+        render(cached.data, { cached: true });
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function loadData(forceFresh) {
+      el('refresh').classList.add('spin');
+      google.script.run
+        .withSuccessHandler(data => {
+          render(data);
+          saveCachedData(currentData);
+          loadReviewData();
+        })
+        .withFailureHandler(showError)
+        .getSavingsAppData(false, forceFresh === true);
+    }
+
+    function loadReviewData() {
+      if (!(currentData && currentData.review)) {
+        el('reviewList').innerHTML = '<div class="detail-loading">要確認だけを読み込んでいます…</div>';
+      }
+      google.script.run
+        .withSuccessHandler(review => {
+          if (!currentData) currentData = {};
+          currentData.review = review;
+          renderReview(review);
+          saveCachedData(currentData);
+        })
+        .withFailureHandler(error => {
+          if (!(currentData && currentData.review)) {
+            el('reviewList').innerHTML = `<div class="review-empty">${escapeHtml(error && error.message ? error.message : '要確認の読み込みに失敗しました')}</div>`;
+          }
+        })
+        .getSavingsReviewData();
+    }
+
+    function render(data, options) {
+      const previousReview = currentData && currentData.review;
+      currentData = data;
+      if (!currentData.review && previousReview) currentData.review = previousReview;
+      const s = data.summary;
+      el('prepared').textContent = yen(s.currentBalance);
+      el('currentSavings').textContent = `${yen(s.prepared)}円`;
+      el('paid').textContent = `${yen(s.paid)}円`;
+      el('percent').textContent = `${s.progressPercent}%`;
+      el('ring').style.setProperty('--p', s.progressPercent);
+      el('deadline').textContent = `${prettyDate(data.monthEnd.date)}まで`;
+      el('daysLeft').textContent = `残り${data.monthEnd.daysLeft}日`;
+      el('nextGap').textContent = yen(data.monthEnd.todaySpendable);
+      el('daily').textContent = data.monthEnd.shortfall > 0
+        ? `旅行後に20万円を残すには、${prettyDate(data.next.deadline)}までにあと${yen(data.monthEnd.shortfall)}円の収入増または支出削減が必要です（1日あたり${yen(data.monthEnd.dailyRequired)}円）。`
+        : `生活費・固定費・未払い旅行費と、旅行後に残す20万円をすべて確保したうえでの追加予算です。`;
+      el('estimate').textContent = `${yen(data.monthEnd.spendable)}円`;
+      const hasShortfall = data.monthEnd.shortfall > 0;
+      el('paceStatus').textContent = hasShortfall
+        ? `今月の改善目安は${yen(data.monthEnd.monthRequired)}円です。現在、予定外に追加で使える余裕はありません。`
+        : `全期間で追加利用できる余裕は${yen(data.monthEnd.totalSpendable)}円です。`;
+      el('paceStatus').classList.toggle('behind', hasShortfall);
+      const goal = data.goalForecast;
+      const mp = goal.balance === null ? 0 : Math.max(0, Math.min(100, Math.round(goal.balance / goal.requiredBalance * 100)));
+      el('monthLabel').textContent = `${prettyDate(goal.date)}時点`;
+      el('monthActual').textContent = goal.balance === null ? '予測データなし' : `${yen(goal.balance)}円`;
+      el('monthTarget').textContent = `最低 ${yen(goal.requiredBalance)}円`;
+      el('monthGap').textContent = goal.balance === null ? '月次シートが必要です' : goal.delta >= 0 ? `余裕 ＋${yen(goal.delta)}円` : `不足 ${yen(Math.abs(goal.delta))}円`;
+      el('monthPercent').textContent = `${mp}%`;
+      requestAnimationFrame(() => el('monthBar').style.width = `${mp}%`);
+
+      el('yearEndBalances').innerHTML = (data.yearEndBalances || []).map(item => {
+        const month = Number(item.deadline.slice(5,7));
+        const balance = item.forecastBalance;
+        const payment = item.remainingPaymentAmount > 0 ? `未払い予定 ${yen(item.remainingPaymentAmount)}円` : '未払い予定なし';
+        const monthKey = item.deadline.slice(0,7);
+        return `<button class="balance-mini" type="button" data-month-key="${monthKey}" aria-label="${month}月の1日ごとの詳細を見る"><header><b>${month}月</b><span>${payment}</span></header><strong class="${balance < 0 ? 'minus' : ''}">${balance === null ? '—' : (balance < 0 ? '−' : '') + yen(Math.abs(balance)) + '円'}</strong><p>${escapeHtml(item.payment)}</p><span class="tap-hint">1日ごとの詳細を見る →</span></button>`;
+      }).join('');
+
+      el('timeline').innerHTML = data.plan.map(item => {
+        const month = Number(item.deadline.slice(5,7));
+        const classes = `milestone${item.active ? ' active' : ''}${item.achieved ? ' done' : ''}`;
+        const balance = item.forecastBalance === null ? '予測データなし' : `${item.forecastBalance < 0 ? '−' : ''}${yen(Math.abs(item.forecastBalance))}円`;
+        let status = '支払いなし';
+        if (item.paymentAmount > 0 && item.remainingPaymentAmount <= 0) status = '支払い済み';
+        else if (item.paidAmount > 0) status = `残り −${yen(item.remainingPaymentAmount)}円`;
+        else if (item.remainingPaymentAmount > 0) status = `予定 −${yen(item.remainingPaymentAmount)}円`;
+        return `<article class="${classes}"><div class="month">${month}月</div><div><h3>支払い後 ${balance}</h3><p>${escapeHtml(item.payment)} · ${escapeHtml(item.estimate)}</p></div><b>${item.achieved ? '✓' : status}</b></article>`;
+      }).join('');
+
+      if (currentData.review) renderReview(currentData.review);
+
+      el('recordCount').textContent = data.records.length ? `${data.records.length}件` : '';
+      el('activity').innerHTML = data.records.length ? data.records.slice(0,8).map(record => {
+        const isPay = record.type === '旅行費支払い';
+        const sign = isPay ? '−' : '+';
+        const icon = isPay ? '払' : '戻';
+        return `<article class="record${isPay ? ' pay' : ''}"><div class="record-icon">${icon}</div><div><h3>${escapeHtml(record.description || record.type)}</h3><p>${prettyDate(record.date)}${record.memo ? ' · '+escapeHtml(record.memo) : ''}</p></div><b>${sign}${yen(record.amount)}円</b></article>`;
+      }).join('') : '<div class="activity-empty">「ハワイ関係」に分類された支払いはまだありません。</div>';
+      el('updated').textContent = `${s.sourceSheet} ${prettyDate(s.sourceDate)} の9行目から取得 · ${data.generatedAt}更新${options && options.cached ? '（前回表示・最新情報を取得中）' : ''}`;
+      el('loading').style.display = 'none';
+      if (!(options && options.cached)) el('refresh').classList.remove('spin');
+    }
+
+    function itemDisplayName(value) {
+      return value === '洋服代' ? '被服' : value;
+    }
+
+    function orderItemOptions(options) {
+      const values = Array.from(options || []);
+      const preferred = ['食費', '固定費', '交通費', '健康', '日用品', '洋服代'];
+      const first = preferred.filter(value => values.includes(value));
+      return first.concat(values.filter(value => !first.includes(value)));
+    }
+
+    function optionList(options, selected, placeholder) {
+      const head = `<option value="">${escapeHtml(placeholder || '選択してください')}</option>`;
+      return head + (options || []).map(value => `<option value="${escapeHtml(value)}"${value === selected ? ' selected' : ''}>${escapeHtml(itemDisplayName(value))}</option>`).join('');
+    }
+
+    function renderReview(review) {
+      const saved = savedKeys();
+      const before = (review.transactions || []).length;
+      review.transactions = (review.transactions || []).filter(row => !saved[row.key]);
+      review.count = Math.max(0, Number(review.count || 0) - (before - review.transactions.length));
+      (review.editFailures || []).forEach(item => toast(`反映できなかった保存があります：${item.message || ''}`));
+      review.editFailures = [];
+      const rows = review.transactions;
+      el('reviewCount').textContent = review.count ? `（${review.count}）` : '';
+      if (!rows.length) {
+        el('reviewList').innerHTML = '<div class="review-empty">今すぐ操作が必要な明細はありません。</div>';
+        return;
+      }
+      el('reviewList').innerHTML = rows.map((row, index) => {
+        const options = row.cashflow === '収入' ? review.itemOptions.income : orderItemOptions(review.itemOptions.expense);
+        const selectedItem = row.item || row.suggestedItem || '';
+        const detail = row.product || row.description || '';
+        const fixedHint = row.fixedStatus ? `<span class="suggestion change">${escapeHtml(row.fixedStatus)}</span>` : '';
+        const fixedFieldsOpen = selectedItem === '固定費' ? ' open' : '';
+        const fixedFields = row.canClassifyFixed ? `
+          <div class="fixed-fields${fixedFieldsOpen}" id="fixedFields${index}">
+            <div><span class="field-label">固定費の内訳（今回）</span><select data-role="fixed-category">${optionList(review.fixedCategories, row.fixedCategory, '選択')}</select></div>
+            <div><span class="field-label">周期</span><select data-role="fixed-interval">${(review.intervals || []).map(v => `<option value="${v.value}"${Number(v.value) === Number(row.fixedInterval) ? ' selected' : ''}>${escapeHtml(v.label)}</option>`).join('')}</select></div>
+            <div class="wide"><span class="field-label">固定費名</span><input data-role="fixed-name" maxlength="100" value="${escapeHtml(row.fixedName)}"></div>
+          </div>` : '';
+        const fixedRuleControl = row.canRegisterFixed
+          ? `<label class="fixed-toggle"><input type="checkbox" data-role="fixed-toggle" data-index="${index}"><span>今後も同じ支払いを固定費ルールに登録</span></label>`
+          : (row.fixedRegistrationNote ? `<p class="review-product">${escapeHtml(row.fixedRegistrationNote)}</p>` : '');
+        const amountInput = `<span class="field-label">金額</span><div class="amount-wrap"><input data-role="amount" type="number" inputmode="numeric" min="1" max="10000000" placeholder="金額を入力" value="${row.amount > 0 ? escapeHtml(String(row.amount)) : ''}"></div>`;
+        return `<article class="review-card" data-review-index="${index}">
+          <div class="review-head"><div><h3>${escapeHtml(row.store || row.description || '名称なし')}</h3><p>${prettyDate(row.date)} ${escapeHtml(row.time)} · ${escapeHtml(row.cashflow)}</p></div><b class="review-amount">${row.needsAmount ? '金額未入力' : (row.cashflow === '収入' ? '+' : '−') + yen(row.amount) + '円'}</b></div>
+          ${detail ? `<p class="review-product">${escapeHtml(detail)}</p>` : ''}
+          ${row.suggestedItem ? `<span class="suggestion">自動候補：${escapeHtml(itemDisplayName(row.suggestedItem))}</span>` : ''}${fixedHint}
+          ${amountInput}
+          <span class="field-label">項目</span>
+          <select data-role="item" data-index="${index}">${optionList(options, selectedItem, '項目を選択')}</select>
+          ${fixedFields}${fixedRuleControl}
+          <button class="review-save" type="button" data-action="save-review" data-index="${index}">この明細を確定</button>
+        </article>`;
+      }).join('');
+    }
+
+    function saveReview(index, button) {
+      const row = currentData && currentData.review && currentData.review.transactions[index];
+      const card = document.querySelector(`[data-review-index="${index}"]`);
+      if (!row || !card) return;
+      const fixedToggle = card.querySelector('[data-role="fixed-toggle"]');
+      const payload = {
+        key: row.key,
+        cashflow: row.cashflow,
+        amount: Number(card.querySelector('[data-role="amount"]')?.value || row.amount || 0),
+        item: card.querySelector('[data-role="item"]').value,
+        registerFixed: Boolean(fixedToggle && fixedToggle.checked),
+        fixedCategory: card.querySelector('[data-role="fixed-category"]')?.value || '',
+        fixedName: card.querySelector('[data-role="fixed-name"]')?.value || '',
+        fixedInterval: Number(card.querySelector('[data-role="fixed-interval"]')?.value || 1)
+      };
+      if (payload.amount <= 0) return toast('金額を入力してください');
+      if (!payload.item) return toast('項目を選んでください');
+      if (payload.item === '固定費' && (!payload.fixedCategory || !payload.fixedName)) return toast('固定費の内訳と名前を入力してください');
+      if (payload.registerFixed && (!payload.fixedCategory || !payload.fixedName)) return toast('固定費カテゴリと名前を入力してください');
+      button.disabled = true;
+      markSaved(row.key);
+      enqueueEdit('review', payload);
+      renderReview(currentData.review);
+      saveCachedData(currentData);
+      toast(payload.registerFixed ? '確定しました（固定費ルールも登録）' : '確定しました');
+    }
+
+    function switchMailTab(name) {
+      const showAll = name === 'all';
+      el('reviewPane').classList.toggle('hidden', showAll);
+      el('mailListPane').classList.toggle('hidden', !showAll);
+      el('reviewTab').classList.toggle('active', !showAll);
+      el('mailListTab').classList.toggle('active', showAll);
+      el('reviewTab').setAttribute('aria-selected', String(!showAll));
+      el('mailListTab').setAttribute('aria-selected', String(showAll));
+      if (showAll && !mailLoaded) loadMailPage(true);
+    }
+
+    function loadMailPage(reset) {
+      if (reset) {
+        mailPage = 1;
+        mailRows = [];
+        el('mailList').innerHTML = '<div class="detail-loading">メール用シートを読み込んでいます…</div>';
+        el('loadMoreMail').hidden = true;
+      }
+      google.script.run
+        .withSuccessHandler(data => renderMailPage(data, !reset))
+        .withFailureHandler(error => {
+          el('mailList').innerHTML = `<div class="review-empty">${escapeHtml(error && error.message ? error.message : '読み込みに失敗しました')}</div>`;
+        })
+        .getSavingsMailPage(mailPage);
+    }
+
+    function renderMailPage(data, append) {
+      mailLoaded = true;
+      mailOptions = data;
+      const baseIndex = mailRows.length;
+      mailRows = append ? mailRows.concat(data.rows || []) : (data.rows || []);
+      const html = (data.rows || []).map((row, localIndex) => renderMailCard(row, baseIndex + localIndex)).join('');
+      if (append) el('mailList').insertAdjacentHTML('beforeend', html);
+      else el('mailList').innerHTML = html || '<div class="review-empty">メール用の明細がありません。</div>';
+      el('loadMoreMail').hidden = !data.hasMore;
+      mailPage = Number(data.page || 1) + 1;
+    }
+
+    function renderMailCard(row, index) {
+      const itemChoices = row.cashflow === '収入' ? mailOptions.itemOptions.income : orderItemOptions(mailOptions.itemOptions.expense);
+      const itemPlaceholder = row.suggestedItem ? `自動のまま（${itemDisplayName(row.suggestedItem)}）` : '未設定';
+      const fixedFieldsOpen = row.fixedRegistered || row.item === '固定費' ? ' open' : '';
+      const detail = row.product || row.description || '';
+      return `<article class="mail-card" data-mail-index="${index}">
+        <div class="mail-card-head"><div><h3>${escapeHtml(row.store)}</h3><p>${prettyDate(row.date)} ${escapeHtml(row.time)}</p></div><b>${row.needsAmount ? '金額未入力' : (row.cashflow === '収入' ? '+' : '−') + yen(row.amount) + '円'}</b></div>
+        ${detail ? `<p class="mail-meta">${escapeHtml(detail)}</p>` : ''}
+        <div class="mail-badges">${row.suggestedItem ? `<span class="mail-badge">自動：${escapeHtml(itemDisplayName(row.suggestedItem))}</span>` : ''}${row.reason ? `<span class="mail-badge">${escapeHtml(row.reason)}</span>` : ''}${row.confirmed ? '<span class="mail-badge ok">確認済み</span>' : ''}${row.fixedStatus ? `<span class="mail-badge">${escapeHtml(row.fixedStatus)}</span>` : ''}</div>
+        <span class="field-label">金額</span><div class="amount-wrap"><input data-role="mail-amount" type="number" inputmode="numeric" min="1" max="10000000" placeholder="金額を入力" value="${row.amount > 0 ? escapeHtml(String(row.amount)) : ''}"></div>
+        <div class="mail-edit-grid">
+          <div><span class="field-label">収支区分</span><select data-role="mail-cashflow"><option value="支出"${row.cashflow === '支出' ? ' selected' : ''}>支出</option><option value="収入"${row.cashflow === '収入' ? ' selected' : ''}>収入</option></select></div>
+          <div><span class="field-label">項目（今回の上書き）</span><select data-role="mail-item">${optionList(itemChoices, row.item, itemPlaceholder)}</select></div>
+        </div>
+        <div class="mail-checks">
+          <label class="mail-check"><input type="checkbox" data-role="mail-confirmed"${row.confirmed ? ' checked' : ''}>確認OK</label>
+          ${row.canRegisterFixed ? `<label class="mail-check"><input type="checkbox" data-role="mail-fixed-toggle" data-index="${index}"${row.fixedRegistered ? ' checked' : ''}>今後も固定費ルールに登録</label>` : ''}
+        </div>
+        ${row.fixedRegistrationNote ? `<p class="mail-meta">${escapeHtml(row.fixedRegistrationNote)}</p>` : ''}
+        <div class="mail-fixed-fields${fixedFieldsOpen}" id="mailFixedFields${index}">
+          <div><span class="field-label">固定費の内訳（今回）</span><select data-role="mail-fixed-category">${optionList(mailOptions.fixedCategories, row.fixedCategory, '選択')}</select></div>
+          <div><span class="field-label">周期</span><select data-role="mail-fixed-interval">${(mailOptions.intervals || []).map(v => `<option value="${v.value}"${Number(v.value) === Number(row.fixedInterval) ? ' selected' : ''}>${escapeHtml(v.label)}</option>`).join('')}</select></div>
+          <div class="wide"><span class="field-label">固定費名</span><input type="text" data-role="mail-fixed-name" maxlength="100" value="${escapeHtml(row.fixedName)}"></div>
+        </div>
+        <button class="mail-save" type="button" data-action="save-mail" data-index="${index}">この行の変更を反映</button>
+      </article>`;
+    }
+
+    function saveMailRow(index, button) {
+      const row = mailRows[index];
+      const card = document.querySelector(`[data-mail-index="${index}"]`);
+      if (!row || !card) return;
+      const payload = {
+        key: row.key,
+        cashflow: card.querySelector('[data-role="mail-cashflow"]').value,
+        amount: Number(card.querySelector('[data-role="mail-amount"]')?.value || row.amount || 0),
+        item: card.querySelector('[data-role="mail-item"]').value,
+        confirmed: card.querySelector('[data-role="mail-confirmed"]').checked,
+        fixedRegistered: Boolean(card.querySelector('[data-role="mail-fixed-toggle"]')?.checked),
+        fixedCategory: card.querySelector('[data-role="mail-fixed-category"]').value,
+        fixedName: card.querySelector('[data-role="mail-fixed-name"]').value,
+        fixedInterval: Number(card.querySelector('[data-role="mail-fixed-interval"]').value || 1)
+      };
+      if (payload.amount <= 0) return toast('金額を入力してください');
+      if (payload.item === '固定費' && (!payload.fixedCategory || !payload.fixedName)) return toast('固定費の内訳と名前を入力してください');
+      if (payload.fixedRegistered && (!payload.fixedCategory || !payload.fixedName)) return toast('固定費カテゴリと名前を入力してください');
+      enqueueEdit('mail', payload);
+      if (payload.confirmed || payload.item) markSaved(row.key);
+      // 画面上の行をすぐ更新する。同じ行を続けて編集できるよう、照合キーも新しい金額へ合わせる。
+      const keyParts = String(row.key).split('|');
+      keyParts[3] = String(Math.round(payload.amount));
+      Object.assign(row, {
+        key: keyParts.join('|'),
+        amount: Math.round(payload.amount),
+        needsAmount: false,
+        cashflow: payload.cashflow,
+        item: payload.item,
+        confirmed: payload.confirmed,
+        fixedRegistered: payload.fixedRegistered,
+        fixedCategory: payload.fixedCategory,
+        fixedName: payload.fixedName,
+        fixedInterval: payload.fixedInterval
+      });
+      card.outerHTML = renderMailCard(row, index);
+      if (currentData && currentData.review) renderReview(currentData.review);
+      toast('変更を保存しました');
+    }
+
+    function openMonthDetail(monthKey) {
+      el('monthDetailTitle').textContent = `${Number(monthKey.slice(5,7))}月の1日ごとの詳細`;
+      el('monthDetailList').innerHTML = '<div class="detail-loading">スプレッドシートから読み込んでいます…</div>';
+      el('monthDetailOverlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      google.script.run
+        .withSuccessHandler(renderMonthDetail)
+        .withFailureHandler(error => {
+          el('monthDetailList').innerHTML = `<div class="review-empty">${escapeHtml(error && error.message ? error.message : '読み込みに失敗しました')}</div>`;
+        })
+        .getSavingsMonthDetail(monthKey);
+    }
+
+    function renderMonthDetail(data) {
+      el('monthDetailTitle').textContent = data.title;
+      const weekdays = ['日','月','火','水','木','金','土'];
+      el('monthDetailList').innerHTML = (data.days || []).map(day => {
+        const date = new Date(`${day.date}T00:00:00+09:00`);
+        const breakdown = [];
+        if (day.fixedExpense) breakdown.push(`固定費 ${yen(day.fixedExpense)}円`);
+        if (day.variableExpense) breakdown.push(`変動費 ${yen(day.variableExpense)}円`);
+        if (day.fixedIncome) breakdown.push(`固定収入 ${yen(day.fixedIncome)}円`);
+        if (day.variableIncome) breakdown.push(`変動収入 ${yen(day.variableIncome)}円`);
+        return `<article class="day-row"><div class="day-date"><b>${Number(day.date.slice(8))}日</b><span>${weekdays[date.getDay()]}曜日</span></div><div class="day-flow"><p><span>支出</span><b class="expense">−${yen(day.expense)}円</b></p><p><span>収入</span><b>＋${yen(day.income)}円</b></p></div><div class="day-balance"><span>その日の残高</span><b>${yen(day.balance)}円</b></div>${breakdown.length ? `<div class="day-breakdown">${breakdown.map(text => `<span>${text}</span>`).join('')}</div>` : ''}</article>`;
+      }).join('') || '<div class="review-empty">この月の日別データがありません。</div>';
+    }
+
+    function closeMonthDetail() {
+      el('monthDetailOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function showError(error) {
+      el('loading').style.display = 'none';
+      el('refresh').classList.remove('spin');
+      toast(error && error.message ? error.message : '読み込みに失敗しました');
+    }
+
+    function toast(message) {
+      el('toast').textContent = message;
+      el('toast').classList.add('show');
+      setTimeout(() => el('toast').classList.remove('show'), 2500);
+    }
+
+    function openHouseholdForm() {
+      const frame = el('householdFormFrame');
+      if (!frame.src) frame.src = HOUSEHOLD_FORM_URL;
+      el('householdFormOverlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      requestAnimationFrame(() => el('closeHouseholdForm').focus());
+    }
+
+    function closeHouseholdForm() {
+      el('householdFormOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+      el('openHouseholdForm').focus();
+      setTimeout(() => loadData(true), 1200);
+    }
+
+    el('refresh').addEventListener('click', () => loadData(true));
+    el('openHouseholdForm').addEventListener('click', openHouseholdForm);
+    el('closeHouseholdForm').addEventListener('click', closeHouseholdForm);
+    el('householdFormFrame').addEventListener('load', () => el('householdFormWrap').classList.add('loaded'));
+    el('householdFormOverlay').addEventListener('click', event => {
+      if (event.target === el('householdFormOverlay')) closeHouseholdForm();
+    });
+    el('reviewList').addEventListener('change', event => {
+      if (!event.target.matches('[data-role="fixed-toggle"], [data-role="item"], [data-role="fixed-category"]')) return;
+      const index = Number(event.target.dataset.index);
+      const card = document.querySelector(`[data-review-index="${index}"]`);
+      if (!card) return;
+      const isFixedItem = card.querySelector('[data-role="item"]').value === '固定費';
+      const registerRule = card.querySelector('[data-role="fixed-toggle"]')?.checked;
+      el(`fixedFields${index}`).classList.toggle('open', isFixedItem || registerRule);
+      if (event.target.matches('[data-role="fixed-category"]') && event.target.value === '家賃') {
+        card.querySelector('[data-role="fixed-name"]').value = '家賃';
+      }
+    });
+    el('reviewList').addEventListener('click', event => {
+      const button = event.target.closest('[data-action="save-review"]');
+      if (button) saveReview(Number(button.dataset.index), button);
+    });
+    document.querySelector('.mail-tabs').addEventListener('click', event => {
+      const tab = event.target.closest('[data-mail-tab]');
+      if (tab) switchMailTab(tab.dataset.mailTab);
+    });
+    el('mailList').addEventListener('change', event => {
+      const card = event.target.closest('[data-mail-index]');
+      if (!card) return;
+      const index = Number(card.dataset.mailIndex);
+      if (event.target.matches('[data-role="mail-fixed-toggle"], [data-role="mail-item"]')) {
+        const isFixedItem = card.querySelector('[data-role="mail-item"]').value === '固定費';
+        const registerRule = card.querySelector('[data-role="mail-fixed-toggle"]').checked;
+        el(`mailFixedFields${index}`).classList.toggle('open', isFixedItem || registerRule);
+      }
+      if (event.target.matches('[data-role="mail-fixed-category"]') && event.target.value === '家賃') {
+        card.querySelector('[data-role="mail-fixed-name"]').value = '家賃';
+      }
+      if (event.target.matches('[data-role="mail-cashflow"]')) {
+        const row = mailRows[index];
+        const options = event.target.value === '収入' ? mailOptions.itemOptions.income : mailOptions.itemOptions.expense;
+        const itemSelect = card.querySelector('[data-role="mail-item"]');
+        itemSelect.innerHTML = optionList(options, '', row.suggestedItem ? `自動のまま（${row.suggestedItem}）` : '未設定');
+      }
+    });
+    el('mailList').addEventListener('click', event => {
+      const button = event.target.closest('[data-action="save-mail"]');
+      if (button) saveMailRow(Number(button.dataset.index), button);
+    });
+    el('loadMoreMail').addEventListener('click', () => loadMailPage(false));
+    el('yearEndBalances').addEventListener('click', event => {
+      const button = event.target.closest('[data-month-key]');
+      if (button) openMonthDetail(button.dataset.monthKey);
+    });
+    el('closeMonthDetail').addEventListener('click', closeMonthDetail);
+    el('monthDetailOverlay').addEventListener('click', event => {
+      if (event.target === el('monthDetailOverlay')) closeMonthDetail();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'Escape') return;
+      if (el('monthDetailOverlay').classList.contains('open')) closeMonthDetail();
+      else if (el('householdFormOverlay').classList.contains('open')) closeHouseholdForm();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') flushOutbox();
+    });
+    window.addEventListener('online', flushOutbox);
+    el('setupSave').addEventListener('click', () => {
+      const token = tokenFromText(el('setupInput').value);
+      if (!token) return toast('設定リンクを確認してください');
+      try { localStorage.setItem(API_TOKEN_KEY, token); } catch (error) { /* URLの合言葉で続行 */ }
+      location.hash = `t=${token}`;
+      location.reload();
+    });
+    if (IS_STANDALONE_SITE && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+    if (IS_STANDALONE_SITE && !API_TOKEN) {
+      showTokenSetup();
+    } else {
+      restoreCachedData();
+      loadData();
+      flushOutbox();
+    }
+  </script>
+</body>
+</html>
