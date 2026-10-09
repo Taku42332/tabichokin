@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-1ApsYtcS3cOCsW/S/bKny1TNCBo4bcliFd6xwQgxto4='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-4gHj5UigjKDhZENqLdbVU6RpaA7i8x76wVJ/lfDElkA='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
@@ -155,6 +155,28 @@
     .sync-status { display:none; margin:10px 4px 0; padding:9px 11px; border-radius:12px; color:#285d47; background:#e7f1e8; font-size:10px; font-weight:900; line-height:1.5; }
     .sync-status.show { display:block; }
     .sync-status.warn { color:#844230; background:#fff0eb; }
+    .rule-panel { padding:16px; border:1px solid var(--line); border-radius:24px; background:rgba(255,253,248,.68); box-shadow:0 10px 32px rgba(18,60,45,.05); }
+    .rule-total { display:flex; justify-content:space-between; align-items:baseline; margin:0 2px 12px; color:var(--muted); font-size:11px; }
+    .rule-total b { color:var(--ink); font-size:16px; }
+    .rule-list { display:grid; gap:9px; }
+    .rule-card { padding:14px; border:1px solid var(--line); border-radius:17px; background:var(--paper); }
+    .rule-head { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:start; }
+    .rule-head h3 { margin:0; font-size:14px; line-height:1.45; }
+    .rule-head p { margin:3px 0 0; color:var(--muted); font-size:10px; }
+    .rule-head b { color:var(--coral); font-size:14px; white-space:nowrap; }
+    .rule-paused { display:inline-flex; margin-left:6px; padding:2px 7px; border-radius:999px; color:#844230; background:#fff0eb; font-size:9px; font-weight:900; vertical-align:middle; }
+    .rule-cancel-open { width:100%; min-height:40px; margin-top:10px; border:1px solid rgba(255,120,95,.45); border-radius:12px; color:#b4442d; background:#fff7f4; font-size:11px; font-weight:900; }
+    .rule-confirm { display:none; margin-top:10px; padding:12px; border-radius:13px; background:#fff0eb; }
+    .rule-confirm.open { display:block; }
+    .rule-confirm p { margin:0 0 8px; color:#844230; font-size:10px; line-height:1.6; }
+    .rule-confirm input { min-height:43px; padding:9px 10px; border-radius:12px; }
+    .rule-confirm-actions { display:grid; grid-template-columns:1fr 1.4fr; gap:8px; margin-top:10px; }
+    .rule-confirm-actions button { min-height:42px; border:0; border-radius:12px; font-size:11px; font-weight:900; }
+    .rule-keep { color:var(--muted); background:#ebe5d9; }
+    .rule-cancel-do { color:white; background:#c4553d; }
+    .rule-ended { margin-top:12px; color:var(--muted); font-size:11px; }
+    .rule-ended summary { cursor:pointer; font-weight:900; padding:6px 2px; }
+    .rule-ended p { display:flex; justify-content:space-between; gap:8px; margin:6px 2px; font-size:10px; }
     .load-more { width:100%; min-height:46px; margin-top:10px; border:1px solid var(--line); border-radius:14px; color:var(--leaf); background:var(--paper); font-size:11px; font-weight:900; }
     .activity { display:grid; gap:8px; }
     .activity-empty { padding:30px 18px; text-align:center; color:var(--muted); border:1px dashed var(--line); border-radius:18px; font-size:12px; }
@@ -274,6 +296,13 @@
       </div>
     </section>
 
+    <div class="section-title"><h2>サブスク・固定費</h2><span>解約もここから</span></div>
+    <section class="rule-panel">
+      <p class="rule-total"><span>利用中の合計（月あたり換算）</span><b id="ruleTotal">—</b></p>
+      <div class="rule-list" id="ruleList"><div class="detail-loading">読み込んでいます…</div></div>
+      <details class="rule-ended" id="ruleEnded" hidden><summary>最近解約したもの</summary><div id="ruleEndedList"></div></details>
+    </section>
+
     <div class="section-title"><h2>旅行後の残高見込み</h2><span id="monthLabel">—</span></div>
     <section class="month-card">
       <div class="month-row"><b id="monthActual">0円</b><span id="monthTarget">目標 0円</span></div>
@@ -375,6 +404,7 @@
         getSavingsReviewData: () => ['review', {}, false],
         getSavingsMailPage: page => ['mail', { page: Number(page) || 1 }, false],
         getSavingsMonthDetail: month => ['month', { month: month }, false],
+        getSavingsFixedRules: () => ['rules', {}, false],
         queueSavingsEdits: edits => ['queue', { edits: edits }, true],
         applySavingsEdits: () => ['apply', {}, false]
       };
@@ -497,7 +527,7 @@
           writeStore(OUTBOX_KEY, readStore(OUTBOX_KEY, []).filter(item => !doneIds.has(item.id)));
           (result.rejected || []).forEach(item => {
             const edit = sending.find(entry => entry.id === item.id);
-            if (edit) unmarkSaved(edit.payload.key);
+            if (edit) unmarkSaved(edit.payload.key || `rule:${edit.payload.ruleKey}`);
             toast(item.message || '保存できませんでした');
           });
           outboxSending = false;
@@ -562,6 +592,7 @@
           render(data);
           saveCachedData(currentData);
           loadReviewData();
+          loadRules();
         })
         .withFailureHandler(showError)
         .getSavingsAppData(false, forceFresh === true);
@@ -588,8 +619,11 @@
 
     function render(data, options) {
       const previousReview = currentData && currentData.review;
+      const previousRules = currentData && currentData.rules;
       currentData = data;
       if (!currentData.review && previousReview) currentData.review = previousReview;
+      if (!currentData.rules && previousRules) currentData.rules = previousRules;
+      if (currentData.rules) renderRules(currentData.rules);
       const s = data.summary;
       el('prepared').textContent = yen(s.currentBalance);
       el('currentSavings').textContent = `${yen(s.prepared)}円`;
@@ -733,6 +767,73 @@
       renderReview(currentData.review);
       saveCachedData(currentData);
       toast(payload.registerFixed ? '確定しました（固定費ルールも登録）' : '確定しました');
+    }
+
+    function loadRules() {
+      google.script.run
+        .withSuccessHandler(rules => {
+          if (!currentData) return;
+          currentData.rules = rules;
+          renderRules(rules);
+          saveCachedData(currentData);
+        })
+        .withFailureHandler(error => {
+          if (!(currentData && currentData.rules)) {
+            el('ruleList').innerHTML = `<div class="review-empty">${escapeHtml(error && error.message ? error.message : '読み込みに失敗しました')}</div>`;
+          }
+        })
+        .getSavingsFixedRules();
+    }
+
+    function intervalLabel(interval) {
+      return ({ 1: '毎月', 3: '3か月ごと', 4: '4か月ごと', 12: '年1回' })[Number(interval)] || `${Number(interval)}か月ごと`;
+    }
+
+    function todayKey() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+
+    function renderRules(rules) {
+      const saved = savedKeys();
+      const active = (rules.active || []).filter(rule => !saved[`rule:${rule.key}`]);
+      const total = active.reduce((sum, rule) => sum + (rule.status === '一時停止' ? 0 : Math.round(rule.amount / rule.interval)), 0);
+      el('ruleTotal').textContent = `${yen(total)}円/月`;
+      el('ruleList').innerHTML = active.length ? active.map((rule, index) => `
+        <article class="rule-card" data-rule-index="${index}">
+          <div class="rule-head">
+            <div><h3>${escapeHtml(rule.name)}${rule.status === '一時停止' ? '<span class="rule-paused">一時停止中</span>' : ''}</h3><p>${escapeHtml(rule.category)} · ${intervalLabel(rule.interval)} ${Number(rule.day)}日</p></div>
+            <b>${yen(rule.amount)}円</b>
+          </div>
+          <button class="rule-cancel-open" type="button" data-action="rule-open">解約する</button>
+          <div class="rule-confirm">
+            <p>解約日より後の請求予定が消え、残高見込みに反映されます。履歴は固定費ルールに「解約」として残ります。</p>
+            <span class="field-label">解約日</span>
+            <input type="date" data-role="rule-end" value="${todayKey()}" min="${escapeHtml(rule.start || '')}">
+            <div class="rule-confirm-actions">
+              <button class="rule-keep" type="button" data-action="rule-close">やめる</button>
+              <button class="rule-cancel-do" type="button" data-action="rule-cancel">解約を確定</button>
+            </div>
+          </div>
+        </article>`).join('') : '<div class="review-empty">利用中のサブスク・固定費はありません。</div>';
+      currentData.rulesView = active;
+      const ended = rules.ended || [];
+      el('ruleEnded').hidden = !ended.length;
+      el('ruleEndedList').innerHTML = ended.map(rule => `<p><span>${escapeHtml(rule.name)}（${yen(rule.amount)}円）</span><span>${prettyDate(rule.end)}まで</span></p>`).join('');
+    }
+
+    function cancelRule(index, card) {
+      const rule = currentData && currentData.rulesView && currentData.rulesView[index];
+      if (!rule) return;
+      const endDate = card.querySelector('[data-role="rule-end"]').value;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) return toast('解約日を選んでください');
+      if (rule.start && endDate < rule.start) return toast('解約日が利用開始日より前です');
+      markSaved(`rule:${rule.key}`);
+      enqueueEdit('rule-cancel', { ruleKey: rule.key, endDate: endDate });
+      currentData.rules.ended = [Object.assign({}, rule, { end: endDate })].concat(currentData.rules.ended || []).slice(0, 8);
+      renderRules(currentData.rules);
+      saveCachedData(currentData);
+      toast(`${rule.name}を解約しました`);
     }
 
     function switchMailTab(name) {
@@ -951,6 +1052,21 @@
       if (button) saveMailRow(Number(button.dataset.index), button);
     });
     el('loadMoreMail').addEventListener('click', () => loadMailPage(false));
+    el('ruleList').addEventListener('click', event => {
+      const button = event.target.closest('[data-action]');
+      const card = event.target.closest('[data-rule-index]');
+      if (!button || !card) return;
+      const confirmBox = card.querySelector('.rule-confirm');
+      if (button.dataset.action === 'rule-open') {
+        confirmBox.classList.add('open');
+        button.hidden = true;
+      } else if (button.dataset.action === 'rule-close') {
+        confirmBox.classList.remove('open');
+        card.querySelector('[data-action="rule-open"]').hidden = false;
+      } else if (button.dataset.action === 'rule-cancel') {
+        cancelRule(Number(card.dataset.ruleIndex), card);
+      }
+    });
     el('yearEndBalances').addEventListener('click', event => {
       const button = event.target.closest('[data-month-key]');
       if (button) openMonthDetail(button.dataset.monthKey);
