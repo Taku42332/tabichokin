@@ -1,6 +1,6 @@
 // 画面ファイルを端末に保存し、次回は通信を待たずに即表示する。裏で最新版を取得して次回に反映する。
 // 家計データ（script.google.com）は保存しない。
-const CACHE = 'hapalua-shell-v2';
+const CACHE = 'hapalua-shell-v3';
 const SHELL = ['./', './index.html', './icon.png?v=2'];
 
 self.addEventListener('install', event => {
