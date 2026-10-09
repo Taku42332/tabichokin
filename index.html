@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-4gHj5UigjKDhZENqLdbVU6RpaA7i8x76wVJ/lfDElkA='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-S4//f9mIG9eU0xTu3SbMIyINVIemrpPh/JT9Wil6F4s='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
@@ -159,6 +159,9 @@
     .rule-total { display:flex; justify-content:space-between; align-items:baseline; margin:0 2px 12px; color:var(--muted); font-size:11px; }
     .rule-total b { color:var(--ink); font-size:16px; }
     .rule-list { display:grid; gap:9px; }
+    .rule-categories { display:flex; flex-wrap:wrap; gap:6px; margin:-4px 0 12px; }
+    .rule-categories span { padding:5px 9px; border-radius:999px; color:#285d47; background:#e7f1e8; font-size:10px; font-weight:900; }
+    .rule-year { margin:0 2px 12px; color:var(--muted); font-size:10px; }
     .rule-card { padding:14px; border:1px solid var(--line); border-radius:17px; background:var(--paper); }
     .rule-head { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:start; }
     .rule-head h3 { margin:0; font-size:14px; line-height:1.45; }
@@ -296,9 +299,10 @@
       </div>
     </section>
 
-    <div class="section-title"><h2>サブスク・固定費</h2><span>解約もここから</span></div>
+    <div class="section-title"><h2>固定費・サブスク一覧</h2><span>解約もここから</span></div>
     <section class="rule-panel">
       <p class="rule-total"><span>利用中の合計（月あたり換算）</span><b id="ruleTotal">—</b></p>
+      <div class="rule-categories" id="ruleCategories"></div>
       <div class="rule-list" id="ruleList"><div class="detail-loading">読み込んでいます…</div></div>
       <details class="rule-ended" id="ruleEnded" hidden><summary>最近解約したもの</summary><div id="ruleEndedList"></div></details>
     </section>
@@ -439,8 +443,12 @@
         Object.keys(apiActions).forEach(name => {
           runner[name] = (...args) => {
             const [action, extra, keepalive] = apiActions[name](...args);
+            const isRead = name.indexOf('get') === 0;
+            // デプロイ直後などにGoogle側が一時的に404や通信エラーを返すことがあるため、読み込みは1回だけ再試行する。
+            const retryRead = error => new Promise(resolve => setTimeout(resolve, 1500)).then(() => postApi(action, extra, false));
             postApi(action, extra, keepalive)
               .catch(error => keepalive && error instanceof TypeError ? postApi(action, extra, false) : Promise.reject(error))
+              .catch(error => isRead && !/合言葉/.test(error && error.message || '') ? retryRead(error) : Promise.reject(error))
               .then(onSuccess, onFailure);
           };
         });
@@ -799,6 +807,15 @@
       const active = (rules.active || []).filter(rule => !saved[`rule:${rule.key}`]);
       const total = active.reduce((sum, rule) => sum + (rule.status === '一時停止' ? 0 : Math.round(rule.amount / rule.interval)), 0);
       el('ruleTotal').textContent = `${yen(total)}円/月`;
+      const byCategory = {};
+      active.forEach(rule => {
+        if (rule.status === '一時停止') return;
+        byCategory[rule.category || 'その他'] = (byCategory[rule.category || 'その他'] || 0) + Math.round(rule.amount / rule.interval);
+      });
+      el('ruleCategories').innerHTML = Object.keys(byCategory)
+        .sort((a, b) => byCategory[b] - byCategory[a])
+        .map(category => `<span>${escapeHtml(category)} ${yen(byCategory[category])}円</span>`)
+        .join('') + (total ? `<span>年額 約${yen(total * 12)}円</span>` : '');
       el('ruleList').innerHTML = active.length ? active.map((rule, index) => `
         <article class="rule-card" data-rule-index="${index}">
           <div class="rule-head">
