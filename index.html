@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-S4//f9mIG9eU0xTu3SbMIyINVIemrpPh/JT9Wil6F4s='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-m1QM9C/LE6fC2CZcK4HsYBUgv8FjCej1gaacdaybA4A='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
@@ -465,6 +465,7 @@
     const escapeHtml = text => String(text || '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
     const el = id => document.getElementById(id);
     let currentData = null;
+    const REVIEW_CACHE_KEY = 'hapalua-review-v1';
     let mailRows = [];
     let mailPage = 1;
     let mailLoaded = false;
@@ -595,11 +596,11 @@
 
     function loadData(forceFresh) {
       el('refresh').classList.add('spin');
+      loadReviewData();
       google.script.run
         .withSuccessHandler(data => {
           render(data);
           saveCachedData(currentData);
-          loadReviewData();
           loadRules();
         })
         .withFailureHandler(showError)
@@ -615,7 +616,8 @@
           if (!currentData) currentData = {};
           currentData.review = review;
           renderReview(review);
-          saveCachedData(currentData);
+          writeStore(REVIEW_CACHE_KEY, { savedAt: Date.now(), review: review });
+          if (currentData.summary) saveCachedData(currentData);
         })
         .withFailureHandler(error => {
           if (!(currentData && currentData.review)) {
@@ -1115,6 +1117,12 @@
       showTokenSetup();
     } else {
       restoreCachedData();
+      const cachedReview = readStore(REVIEW_CACHE_KEY, null);
+      if (cachedReview && Date.now() - cachedReview.savedAt < APP_CACHE_MAX_AGE_MS) {
+        if (!currentData) currentData = {};
+        currentData.review = cachedReview.review;
+        renderReview(currentData.review);
+      }
       loadData();
       flushOutbox();
     }
