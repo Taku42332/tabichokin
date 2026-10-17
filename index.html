@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-m1QM9C/LE6fC2CZcK4HsYBUgv8FjCej1gaacdaybA4A='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-jzk3QSVfvVlDcSUJ4GB1YbYuXAfhNohOSNWVRH7AxhQ='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
@@ -232,6 +232,8 @@
     label { display:block; margin:14px 0 6px; color:var(--muted); font-size:11px; font-weight:700; }
     input, textarea { width:100%; border:1px solid var(--line); border-radius:14px; background:#faf7ef; color:var(--ink); padding:13px 14px; outline:none; }
     input:focus, textarea:focus { border-color:var(--leaf); box-shadow:0 0 0 3px rgba(47,118,87,.1); }
+    /* 小さい文字の入力欄へのフォーカスによるiPhoneの自動拡大を防ぐ。 */
+    input:not([type="checkbox"]):not([type="radio"]), textarea, select { font-size:16px; }
     .amount-wrap { position:relative; }
     .amount-wrap::after { content:"円"; position:absolute; right:14px; top:13px; font-weight:700; }
     .save { width:100%; margin-top:20px; min-height:52px; border:0; border-radius:16px; color:white; background:var(--forest); font-weight:900; }
@@ -1013,10 +1015,24 @@
       requestAnimationFrame(() => el('closeHouseholdForm').focus());
     }
 
+    let viewportRestoreTimer;
+    function resetFormViewport() {
+      const viewport = document.querySelector('meta[name="viewport"]');
+      if (!viewport) return;
+      clearTimeout(viewportRestoreTimer);
+      // 外部フォーム内のフォーカスを外してから、残った拡大倍率をリセットする。
+      // 最大倍率の制限は一時的にだけ使い、通常のピンチ拡大は再び許可する。
+      const normal = 'width=device-width, initial-scale=1, viewport-fit=cover';
+      viewport.setAttribute('content', normal + ', maximum-scale=1');
+      viewportRestoreTimer = setTimeout(() => viewport.setAttribute('content', normal), 350);
+    }
+
     function closeHouseholdForm() {
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       el('householdFormOverlay').classList.remove('open');
       document.body.style.overflow = '';
-      el('openHouseholdForm').focus();
+      el('openHouseholdForm').focus({ preventScroll: true });
+      resetFormViewport();
       setTimeout(() => loadData(true), 1200);
     }
 
