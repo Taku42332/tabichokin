@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-jzk3QSVfvVlDcSUJ4GB1YbYuXAfhNohOSNWVRH7AxhQ='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-R1970vUYdlYE0/IzY/QLOUlj7CiHAit7kTSiVv/sgXw='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
@@ -200,7 +200,9 @@
     @keyframes rise { from { transform:translateY(30px); opacity:0; } }
     .sheet-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
     .sheet-head h2 { margin:0; font-size:20px; }
-    .close { border:0; background:#eee8dc; width:36px; height:36px; border-radius:50%; font-size:18px; }
+    .close { display:grid; place-items:center; flex:0 0 48px; width:48px; height:48px; padding:0; border:0; border-radius:50%; background:#eee8dc; color:var(--ink); font-size:28px; line-height:1; cursor:pointer; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
+    .close:active { background:#ded6c6; }
+    .close:focus-visible { outline:3px solid var(--leaf); outline-offset:3px; }
     .detail-sheet { height:min(88vh,780px); display:flex; flex-direction:column; overflow:hidden; }
     .detail-sheet .sheet-head { flex:0 0 auto; margin-bottom:10px; }
     .detail-guide { flex:0 0 auto; margin:0 0 12px; padding:10px 12px; border-radius:13px; color:#285d47; background:#e7f1e8; font-size:10px; line-height:1.6; }
@@ -219,10 +221,12 @@
     .day-balance b { display:block; margin-top:2px; font-family:"DM Serif Display",serif; font-size:15px; white-space:nowrap; }
     .day-breakdown { grid-column:2 / -1; display:flex; flex-wrap:wrap; gap:5px; margin-top:-3px; }
     .day-breakdown span { padding:4px 7px; border-radius:999px; color:#52635d; background:#ebe5d9; font-size:8px; }
-    .form-sheet { height:min(92vh,850px); display:flex; flex-direction:column; overflow:hidden; }
-    .form-sheet .sheet-head { flex:0 0 auto; margin-bottom:12px; }
+    .form-sheet { height:min(92vh,850px); max-height:calc(var(--form-viewport-height,100dvh) - env(safe-area-inset-top) - 12px); display:flex; flex-direction:column; overflow:hidden; }
+    #householdFormOverlay { inset:auto; left:var(--form-viewport-left,0px); top:var(--form-viewport-top,0px); width:var(--form-viewport-width,100%); height:var(--form-viewport-height,100%); }
+    .form-sheet .sheet-head { position:relative; z-index:3; flex:0 0 auto; gap:12px; margin-bottom:12px; }
+    .form-sheet .sheet-head > div { min-width:0; }
     .form-guide { flex:0 0 auto; margin:0 0 12px; padding:10px 12px; border-radius:13px; color:#285d47; background:#e7f1e8; font-size:11px; font-weight:700; line-height:1.65; }
-    .form-frame-wrap { position:relative; flex:1; min-height:520px; overflow:hidden; border:1px solid var(--line); border-radius:18px; background:#f3efe5; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+    .form-frame-wrap { position:relative; z-index:0; flex:1; min-height:0; overflow:hidden; border:1px solid var(--line); border-radius:18px; background:#f3efe5; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
     .form-frame-wrap iframe { position:relative; z-index:2; display:block; width:100%; height:100%; border:0; background:white; }
     .form-loading { position:absolute; z-index:1; inset:0; display:grid; place-items:center; color:var(--muted); font-size:12px; font-weight:700; }
     .form-frame-wrap.loaded .form-loading { display:none; }
@@ -1007,10 +1011,25 @@
       setTimeout(() => el('toast').classList.remove('show'), 2500);
     }
 
+    function fitHouseholdFormViewport() {
+      const overlay = el('householdFormOverlay');
+      if (!overlay.classList.contains('open')) return;
+      const viewport = window.visualViewport;
+      const bounds = { left:viewport ? viewport.offsetLeft : 0, top:viewport ? viewport.offsetTop : 0,
+        width:viewport ? viewport.width : window.innerWidth, height:viewport ? viewport.height : window.innerHeight };
+      Object.keys(bounds).forEach(key => overlay.style.setProperty('--form-viewport-' + key, bounds[key] + 'px'));
+    }
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', fitHouseholdFormViewport, {passive:true});
+      window.visualViewport.addEventListener('scroll', fitHouseholdFormViewport, {passive:true});
+    }
+    window.addEventListener('resize', fitHouseholdFormViewport, {passive:true});
+
     function openHouseholdForm() {
       const frame = el('householdFormFrame');
       if (!frame.src) frame.src = HOUSEHOLD_FORM_URL;
       el('householdFormOverlay').classList.add('open');
+      fitHouseholdFormViewport();
       document.body.style.overflow = 'hidden';
       requestAnimationFrame(() => el('closeHouseholdForm').focus());
     }
@@ -1028,6 +1047,7 @@
     }
 
     function closeHouseholdForm() {
+      if (!el('householdFormOverlay').classList.contains('open')) return;
       if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       el('householdFormOverlay').classList.remove('open');
       document.body.style.overflow = '';
@@ -1038,7 +1058,24 @@
 
     el('refresh').addEventListener('click', () => loadData(true));
     el('openHouseholdForm').addEventListener('click', openHouseholdForm);
-    el('closeHouseholdForm').addEventListener('click', closeHouseholdForm);
+    const formCloseButton = el('closeHouseholdForm');
+    let formClosePointer = null;
+    formCloseButton.addEventListener('pointerdown', event => {
+      if (!event.isPrimary || event.pointerType === 'mouse' || event.button !== 0) return;
+      formClosePointer = {id:event.pointerId,x:event.clientX,y:event.clientY};
+      // iframeからのフォーカス移動による拡大/キーボードの変化で、最初のタップを失わない。
+      event.preventDefault();
+    });
+    formCloseButton.addEventListener('pointerup', event => {
+      const start = formClosePointer;
+      formClosePointer = null;
+      if (!start || event.pointerId !== start.id || Math.hypot(event.clientX-start.x,event.clientY-start.y)>12) return;
+      event.preventDefault();
+      event.stopPropagation();
+      closeHouseholdForm();
+    });
+    formCloseButton.addEventListener('pointercancel', () => {formClosePointer=null;});
+    formCloseButton.addEventListener('click', closeHouseholdForm);
     el('householdFormFrame').addEventListener('load', () => el('householdFormWrap').classList.add('loaded'));
     el('householdFormOverlay').addEventListener('click', event => {
       if (event.target === el('householdFormOverlay')) closeHouseholdForm();
