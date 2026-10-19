@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-R1970vUYdlYE0/IzY/QLOUlj7CiHAit7kTSiVv/sgXw='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-YcCh219uSmRueLiuujdzdUPV+JCD/WTaiJayqGe3S6c='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
@@ -548,6 +548,9 @@
           outboxSending = false;
           if (readStore(OUTBOX_KEY, []).length) return flushOutbox();
           applyQueuedEdits();
+          if ((result.rejected || []).length) {
+            setSyncStatus('保存できない入力があります：' + result.rejected.map(item => item.message).join(' / '), true);
+          }
         })
         .withFailureHandler(() => {
           outboxSending = false;
@@ -571,12 +574,16 @@
             outboxRetryTimer = setTimeout(applyQueuedEdits, 30000);
             return;
           }
-          setSyncStatus('');
+          if ((result.failed || []).length) {
+            setSyncStatus('反映できませんでした：' + result.failed.map(item => item.message).join(' / '), true);
+          } else {
+            setSyncStatus('スプレッドシートへの反映が完了しました');
+          }
           clearTimeout(refreshAfterSaveTimer);
           refreshAfterSaveTimer = setTimeout(() => loadData(true), 600);
         })
         .withFailureHandler(() => {
-          setSyncStatus('保存は受付済みです。シートへの反映は自動で行われます（最大15分）。');
+          setSyncStatus('シートへの反映を確認できませんでした。再度更新し、登録状態を確認してください。', true);
         })
         .applySavingsEdits();
     }
@@ -775,14 +782,17 @@
       };
       if (payload.amount <= 0) return toast('金額を入力してください');
       if (!payload.item) return toast('項目を選んでください');
-      if (payload.item === '固定費' && (!payload.fixedCategory || !payload.fixedName)) return toast('固定費の内訳と名前を入力してください');
-      if (payload.registerFixed && (!payload.fixedCategory || !payload.fixedName)) return toast('固定費カテゴリと名前を入力してください');
+      if ((payload.item === '固定費' || payload.registerFixed) && (!payload.fixedCategory || !payload.fixedName)) {
+        setSyncStatus('まだ保存していません。固定費の内訳と名前を入力してください。', true);
+        card.querySelector(!payload.fixedCategory ? '[data-role="fixed-category"]' : '[data-role="fixed-name"]')?.focus();
+        return;
+      }
       button.disabled = true;
       markSaved(row.key);
       enqueueEdit('review', payload);
       renderReview(currentData.review);
       saveCachedData(currentData);
-      toast(payload.registerFixed ? '確定しました（固定費ルールも登録）' : '確定しました');
+      toast('保存を送信しています');
     }
 
     function loadRules() {
@@ -890,7 +900,8 @@
     function renderMailPage(data, append) {
       mailLoaded = true;
       mailOptions = data;
-      const baseIndex = mailRows.length;
+      // 一覧の再読込では先頭から置換する。旧件数を足すと保存対象が範囲外になる。
+      const baseIndex = append ? mailRows.length : 0;
       mailRows = append ? mailRows.concat(data.rows || []) : (data.rows || []);
       const html = (data.rows || []).map((row, localIndex) => renderMailCard(row, baseIndex + localIndex)).join('');
       if (append) el('mailList').insertAdjacentHTML('beforeend', html);
@@ -943,8 +954,11 @@
         fixedInterval: Number(card.querySelector('[data-role="mail-fixed-interval"]').value || 1)
       };
       if (payload.amount <= 0) return toast('金額を入力してください');
-      if (payload.item === '固定費' && (!payload.fixedCategory || !payload.fixedName)) return toast('固定費の内訳と名前を入力してください');
-      if (payload.fixedRegistered && (!payload.fixedCategory || !payload.fixedName)) return toast('固定費カテゴリと名前を入力してください');
+      if ((payload.item === '固定費' || payload.fixedRegistered) && (!payload.fixedCategory || !payload.fixedName)) {
+        setSyncStatus('まだ保存していません。固定費の内訳と名前を入力してください。', true);
+        card.querySelector(!payload.fixedCategory ? '[data-role="mail-fixed-category"]' : '[data-role="mail-fixed-name"]')?.focus();
+        return;
+      }
       enqueueEdit('mail', payload);
       if (payload.confirmed || payload.item) markSaved(row.key);
       // 画面上の行をすぐ更新する。同じ行を続けて編集できるよう、照合キーも新しい金額へ合わせる。
@@ -964,7 +978,7 @@
       });
       card.outerHTML = renderMailCard(row, index);
       if (currentData && currentData.review) renderReview(currentData.review);
-      toast('変更を保存しました');
+      toast('保存を送信しています');
     }
 
     function openMonthDetail(monthKey) {
