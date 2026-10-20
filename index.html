@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-vu5yvBgjkd8Z3WfOhLHpcKOo0CosUDNz2S4hCkfdSq8='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-AIk/0RoPHeKLR4y4j0vKEy41o/LaLsg4cG/IY8qiqp4='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
@@ -728,7 +728,7 @@
       const before = (review.transactions || []).length;
       review.transactions = (review.transactions || []).filter(row => {
         const failedNotice = /(?:取引|振込|振り込み|振替)(?:が|の)?(?:不成立|失敗|不能)/;
-        if ([row.store, row.description].some(text => failedNotice.test(String(text || '').replace(/[\s「」『』]/g, '')))) return false;
+        if (failedNotice.test(String(row.description || row.store || '').replace(/[\s「」『』]/g, ''))) return false;
         return row.needsAmount || !saved[row.key];
       });
       review.count = Math.max(0, Number(review.count || 0) - (before - review.transactions.length));
