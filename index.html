@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-YcCh219uSmRueLiuujdzdUPV+JCD/WTaiJayqGe3S6c='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-pqEnfQvStbhmrGJB9p7/8aNSJDsKw9wz/sYZ+O8TmdU='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
@@ -295,7 +295,7 @@
       </div>
       <p class="sync-status" id="syncStatus" role="status" aria-live="polite"></p>
       <div class="mail-pane" id="reviewPane" role="tabpanel">
-        <p class="mail-note">直近14日以内の初回店舗・未判定・固定費変更候補だけを表示します。履歴参照済みの明細は表示しません。</p>
+        <p class="mail-note">金額未入力の明細と、直近14日以内の初回店舗・未判定・固定費変更候補を表示します。金額未入力は入力が完了するまで残ります。</p>
         <section class="review-list" id="reviewList"></section>
       </div>
       <div class="mail-pane hidden" id="mailListPane" role="tabpanel">
@@ -726,7 +726,7 @@
     function renderReview(review) {
       const saved = savedKeys();
       const before = (review.transactions || []).length;
-      review.transactions = (review.transactions || []).filter(row => !saved[row.key]);
+      review.transactions = (review.transactions || []).filter(row => row.needsAmount || !saved[row.key]);
       review.count = Math.max(0, Number(review.count || 0) - (before - review.transactions.length));
       (review.editFailures || []).forEach(item => toast(`反映できなかった保存があります：${item.message || ''}`));
       review.editFailures = [];
