@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-AIk/0RoPHeKLR4y4j0vKEy41o/LaLsg4cG/IY8qiqp4='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-cTka4SxKpftjqnZ2yjad+TGc5VsF9EciRpPkfX/W2Rk='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
@@ -295,7 +295,7 @@
       </div>
       <p class="sync-status" id="syncStatus" role="status" aria-live="polite"></p>
       <div class="mail-pane" id="reviewPane" role="tabpanel">
-        <p class="mail-note">金額未入力の明細と、直近14日以内の初回店舗・未判定・固定費変更候補を表示します。金額未入力は入力が完了するまで残ります。</p>
+        <p class="mail-note">直近14日以内の金額未入力・初回店舗・未判定・固定費変更候補を表示します。それ以前の明細は「メール用一覧」で確認・編集できます。</p>
         <section class="review-list" id="reviewList"></section>
       </div>
       <div class="mail-pane hidden" id="mailListPane" role="tabpanel">
@@ -725,8 +725,13 @@
 
     function renderReview(review) {
       const saved = savedKeys();
+      // 端末に残った以前のデータにも、サーバーと同じ14日間を適用する（日本時間）。
+      const todayKey = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const todayDay = Date.parse(todayKey + 'T00:00:00Z');
       const before = (review.transactions || []).length;
       review.transactions = (review.transactions || []).filter(row => {
+        const rowDay = /^\d{4}-\d{2}-\d{2}$/.test(String(row.date || '')) ? Date.parse(row.date + 'T00:00:00Z') : NaN;
+        if (!Number.isFinite(rowDay) || rowDay > todayDay || rowDay < todayDay - 13 * 86400000) return false;
         const failedNotice = /(?:取引|振込|振り込み|振替)(?:が|の)?(?:不成立|失敗|不能)/;
         if (failedNotice.test(String(row.description || row.store || '').replace(/[\s「」『』]/g, ''))) return false;
         return row.needsAmount || !saved[row.key];
