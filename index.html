@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-cTka4SxKpftjqnZ2yjad+TGc5VsF9EciRpPkfX/W2Rk='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-+RG2b0UUZqbknbt9QuNlNBEBd1aWX2TsT6ayMCbrW+g='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
@@ -540,6 +540,7 @@
         .withSuccessHandler(result => {
           const doneIds = new Set((result.accepted || []).concat((result.rejected || []).map(item => item.id)));
           writeStore(OUTBOX_KEY, readStore(OUTBOX_KEY, []).filter(item => !doneIds.has(item.id)));
+          resetCancelButtons();
           (result.rejected || []).forEach(item => {
             const edit = sending.find(entry => entry.id === item.id);
             if (edit) unmarkSaved(edit.payload.key || `rule:${edit.payload.ruleKey}`);
@@ -579,10 +580,13 @@
           } else {
             setSyncStatus('スプレッドシートへの反映が完了しました');
           }
+          resetCancelButtons();
+          if (mailLoaded) loadMailPage(true);
           clearTimeout(refreshAfterSaveTimer);
           refreshAfterSaveTimer = setTimeout(() => loadData(true), 600);
         })
         .withFailureHandler(() => {
+          resetCancelButtons();
           setSyncStatus('シートへの反映を確認できませんでした。再度更新し、登録状態を確認してください。', true);
         })
         .applySavingsEdits();
@@ -770,8 +774,24 @@
           <select data-role="item" data-index="${index}">${optionList(options, selectedItem, '項目を選択')}</select>
           ${fixedFields}${fixedRuleControl}
           <button class="review-save" type="button" data-action="save-review" data-index="${index}">この明細を確定</button>
+          <button class="mail-save" type="button" data-action="cancel-review" data-index="${index}">この明細を取り消す</button>
         </article>`;
       }).join('');
+    }
+
+    // 金額や項目が未入力の不要な通知も、そのまま取り消せる。
+    function cancelTransaction(row, cancelled, button) {
+      if (!row || !button) return;
+      button.disabled = true;
+      button.textContent = '反映中…';
+      enqueueEdit('transaction-cancel', { key: row.key, cancelled: cancelled });
+    }
+
+    function resetCancelButtons() {
+      document.querySelectorAll('[data-action="cancel-review"], [data-action="cancel-mail"]').forEach(button => {
+        button.disabled = false;
+        button.textContent = button.dataset.restore === 'true' ? '取り消しを戻す' : 'この明細を取り消す';
+      });
     }
 
     function saveReview(index, button) {
@@ -920,6 +940,11 @@
     }
 
     function renderMailCard(row, index) {
+      if (row.cancelled) return `<article class="mail-card" data-mail-index="${index}">
+        <div class="mail-card-head"><div><h3>${escapeHtml(row.store)}</h3><p>${prettyDate(row.date)} ${escapeHtml(row.time)} · ${escapeHtml(row.cashflow)}</p></div></div>
+        <p class="mail-meta">取り消し済み・集計対象外</p>
+        <button class="mail-save" type="button" data-action="cancel-mail" data-restore="true" data-index="${index}">取り消しを戻す</button>
+      </article>`;
       const itemChoices = row.cashflow === '収入' ? mailOptions.itemOptions.income : orderItemOptions(mailOptions.itemOptions.expense);
       const itemPlaceholder = row.suggestedItem ? `自動のまま（${itemDisplayName(row.suggestedItem)}）` : '未設定';
       const fixedFieldsOpen = row.fixedRegistered || row.item === '固定費' ? ' open' : '';
@@ -944,6 +969,7 @@
           <div class="wide"><span class="field-label">固定費名</span><input type="text" data-role="mail-fixed-name" maxlength="100" value="${escapeHtml(row.fixedName)}"></div>
         </div>
         <button class="mail-save" type="button" data-action="save-mail" data-index="${index}">この行の変更を反映</button>
+        <button class="mail-save" type="button" data-action="cancel-mail" data-index="${index}">この明細を取り消す</button>
       </article>`;
     }
 
@@ -1118,6 +1144,8 @@
     el('reviewList').addEventListener('click', event => {
       const button = event.target.closest('[data-action="save-review"]');
       if (button) saveReview(Number(button.dataset.index), button);
+      const cancel = event.target.closest('[data-action="cancel-review"]');
+      if (cancel) cancelTransaction(currentData?.review?.transactions[Number(cancel.dataset.index)], true, cancel);
     });
     document.querySelector('.mail-tabs').addEventListener('click', event => {
       const tab = event.target.closest('[data-mail-tab]');
@@ -1145,6 +1173,8 @@
     el('mailList').addEventListener('click', event => {
       const button = event.target.closest('[data-action="save-mail"]');
       if (button) saveMailRow(Number(button.dataset.index), button);
+      const cancel = event.target.closest('[data-action="cancel-mail"]');
+      if (cancel) cancelTransaction(mailRows[Number(cancel.dataset.index)], cancel.dataset.restore !== 'true', cancel);
     });
     el('loadMoreMail').addEventListener('click', () => loadMailPage(false));
     el('ruleList').addEventListener('click', event => {
