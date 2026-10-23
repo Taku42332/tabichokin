@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-swn4xwDqvnoqXg3S3fOloS/TVlYu3L1PNNzVIpNBtPs='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-5Efys5jxsyNvetGZehSPn8DiVmHlwV4sjwUUaC+SK2Y='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
@@ -556,7 +556,7 @@
         .withSuccessHandler(result => {
           const doneIds = new Set((result.accepted || []).concat((result.rejected || []).map(item => item.id)));
           writeStore(OUTBOX_KEY, readStore(OUTBOX_KEY, []).filter(item => !doneIds.has(item.id)));
-          resetCancelButtons();
+          if ((result.rejected || []).length) resetCancelButtons();
           (result.rejected || []).forEach(item => {
             const edit = sending.find(entry => entry.id === item.id);
             if (edit) unmarkSaved(edit.payload.key || `rule:${edit.payload.ruleKey}`);
@@ -792,7 +792,11 @@
         return row.needsAmount || !saved[row.key];
       });
       review.count = Math.max(0, Number(review.count || 0) - (before - review.transactions.length));
-      (review.editFailures || []).forEach(item => toast(`反映できなかった保存があります：${item.message || ''}`));
+      (review.editFailures || []).forEach(item => {
+        const row = review.transactions.find(row => row.key === item.key);
+        if (row && item.payload) { row.failedEdit = item.payload; row.saveError = item.message || '保存できませんでした'; }
+        toast(`反映できなかった保存があります：${item.message || ''}`);
+      });
       review.editFailures = [];
       const rows = review.transactions;
       el('reviewCount').textContent = review.count ? `（${review.count}）` : '';
@@ -802,7 +806,7 @@
       }
       el('reviewList').innerHTML = rows.map((row, index) => {
         const options = row.cashflow === '収入' ? review.itemOptions.income : orderItemOptions(review.itemOptions.expense);
-        const selectedItem = row.item || row.suggestedItem || '';
+        const selectedItem = row.failedEdit?.item || row.item || row.suggestedItem || '';
         const detail = row.product || row.description || '';
         const fixedHint = row.fixedStatus ? `<span class="suggestion change">${escapeHtml(row.fixedStatus)}</span>` : '';
         const fixedFieldsOpen = selectedItem === '固定費' ? ' open' : '';
@@ -815,11 +819,12 @@
         const fixedRuleControl = row.canRegisterFixed
           ? `<label class="fixed-toggle"><input type="checkbox" data-role="fixed-toggle" data-index="${index}"><span>今後も同じ支払いを固定費ルールに登録</span></label>`
           : (row.fixedRegistrationNote ? `<p class="review-product">${escapeHtml(row.fixedRegistrationNote)}</p>` : '');
-        const amountInput = `<span class="field-label">金額</span><div class="amount-wrap"><input data-role="amount" type="number" inputmode="numeric" min="1" max="10000000" placeholder="金額を入力" value="${row.amount > 0 ? escapeHtml(String(row.amount)) : ''}"></div>`;
+        const amountInput = `<span class="field-label">金額</span><div class="amount-wrap"><input data-role="amount" type="number" inputmode="numeric" min="1" max="10000000" placeholder="金額を入力" value="${Number(row.failedEdit?.amount || row.amount) > 0 ? escapeHtml(String(row.failedEdit?.amount || row.amount)) : ''}"></div>`;
         return `<article class="review-card" data-review-index="${index}">
           <div class="review-head"><div><h3>${escapeHtml(row.store || row.description || '名称なし')}</h3><p>${prettyDate(row.date)} ${escapeHtml(row.time)} · ${escapeHtml(row.cashflow)}</p></div><b class="review-amount">${row.needsAmount ? '金額未入力' : (row.cashflow === '収入' ? '+' : '−') + yen(row.amount) + '円'}</b></div>
           ${detail ? `<p class="review-product">${escapeHtml(detail)}</p>` : ''}
           ${row.suggestedItem ? `<span class="suggestion">自動候補：${escapeHtml(itemDisplayName(row.suggestedItem))}</span>` : ''}${fixedHint}
+          ${row.saveError ? `<p class="review-product">未反映の入力を残しています：${escapeHtml(row.saveError)}</p>` : ''}
           ${amountInput}
           <span class="field-label">項目</span>
           <select data-role="item" data-index="${index}">${optionList(options, selectedItem, '項目を選択')}</select>
@@ -839,6 +844,7 @@
     }
 
     function resetCancelButtons() {
+      document.querySelectorAll('[data-action="save-review"]').forEach(button => { button.disabled = false; button.textContent = 'この明細を確定'; });
       document.querySelectorAll('[data-action="cancel-review"], [data-action="cancel-mail"]').forEach(button => {
         button.disabled = false;
         button.textContent = button.dataset.restore === 'true' ? '取り消しを戻す' : 'この明細を取り消す';
@@ -867,11 +873,10 @@
         card.querySelector(!payload.fixedCategory ? '[data-role="fixed-category"]' : '[data-role="fixed-name"]')?.focus();
         return;
       }
-      button.disabled = true;
-      markSaved(row.key);
+      card.querySelectorAll('button').forEach(item => { item.disabled = true; });
+      button.textContent = '反映中…';
+      // 入力欄を残したまま待ち、実際に適用された後の再取得で要確認から外す。
       enqueueEdit('review', payload);
-      renderReview(currentData.review);
-      saveCachedData(currentData);
       toast('保存を送信しています');
     }
 
