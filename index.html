@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-NyZOp6ridd913I92BpjbeyLPpABhdUAP+BFFTF2WqPA='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-asarjZlPHTw6dThgnL98L5/A3fp7iUo+OEPNEA3P5jk='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
@@ -544,6 +544,8 @@
           card.querySelectorAll('button,input,select,textarea').forEach(button => { button.disabled = true; });
           const done = card.querySelector(entry?.kind === 'transaction-cancel' ? '[data-action="cancel-review"], [data-action="cancel-mail"]' : '[data-action="save-review"], [data-action="save-mail"], [data-action="rule-cancel"]');
           if (done) done.textContent = entry?.kind === 'transaction-cancel' ? (entry.payload.cancelled ? '取り消し済み' : '復元済み') : '反映済み';
+        } else {
+          card.querySelectorAll('button,input,select,textarea').forEach(control => { control.disabled = false; });
         }
         if (entry && applied && (entry.kind === 'review' || entry.kind === 'mail')) {
           const row = [...(currentData?.review?.transactions || []), ...mailRows].find(row => row.key === entry.payload.key);
@@ -782,9 +784,12 @@
       if (deferPanelUpdate('summary', () => render(data, options))) return;
       const previousReview = currentData && currentData.review;
       const previousRules = currentData && currentData.rules;
+      const previousRulesView = currentData && currentData.rulesView;
       currentData = data;
       if (!currentData.review && previousReview) currentData.review = previousReview;
       if (!currentData.rules && previousRules) currentData.rules = previousRules;
+      // 残高APIには表示中の固定費インデックスがない。一覧DOMと一緒に保持する。
+      if (previousRulesView) currentData.rulesView = previousRulesView;
       if (options?.cached && currentData.rules) renderRules(currentData.rules);
       const s = data.summary;
       el('prepared').textContent = yen(s.currentBalance);
@@ -1025,7 +1030,7 @@
 
     function cancelRule(index, card) {
       const rule = currentData && currentData.rulesView && currentData.rulesView[index];
-      if (!rule) return;
+      if (!rule) return toast('固定費の情報を読み込めませんでした。更新してからお試しください');
       const endDate = card.querySelector('[data-role="rule-end"]').value;
       if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) return toast('解約日を選んでください');
       if (rule.start && endDate < rule.start) return toast('解約日が利用開始日より前です');
