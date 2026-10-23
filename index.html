@@ -7,13 +7,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-5Efys5jxsyNvetGZehSPn8DiVmHlwV4sjwUUaC+SK2Y='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-NyZOp6ridd913I92BpjbeyLPpABhdUAP+BFFTF2WqPA='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <meta name="referrer" content="no-referrer">
   <style>
     :root {
@@ -37,7 +35,7 @@
       background:
         radial-gradient(circle at 100% -5%, rgba(205,232,107,.45), transparent 34%),
         linear-gradient(180deg, #f8f5ec 0%, #efe9db 100%);
-      font-family: "Zen Kaku Gothic New", -apple-system, "Hiragino Sans", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
       -webkit-font-smoothing: antialiased;
     }
     button, input, textarea, select { font: inherit; }
@@ -50,14 +48,15 @@
     .icon-btn.spin svg { animation: spin .75s linear infinite; }
     .refresh-status { margin: -6px 0 16px; color: var(--leaf); font-size: 12px; font-weight: 700; line-height: 1.6; }
     .refresh-status.error { color: var(--coral); }
-    .refresh-status:empty { display: none; }
+    .refresh-status:empty { visibility: hidden; }
+    .refresh-status { height:40px; min-height:40px; overflow:auto; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .hero { position: relative; overflow: hidden; padding: 24px; border-radius: 30px; color: white; background: var(--forest); box-shadow: var(--shadow); }
     .hero::after { content:""; position:absolute; width:180px; height:180px; right:-72px; top:-84px; border:34px solid rgba(205,232,107,.13); border-radius:50%; }
     .hero-label { margin: 0 0 8px; color: rgba(255,255,255,.68); font-size: 12px; font-weight: 700; }
     .hero-row { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; }
-    .hero-amount { margin:0; font-family:"DM Serif Display", serif; font-size:44px; line-height:1; letter-spacing:-.04em; }
-    .hero-amount small { font: 700 16px "Zen Kaku Gothic New", sans-serif; margin-left:4px; }
+    .hero-amount { margin:0; font-family:Georgia, "Times New Roman", serif; font-size:44px; line-height:1; letter-spacing:-.04em; }
+    .hero-amount small { font: 700 16px -apple-system, sans-serif; margin-left:4px; }
     .ring { --p: 0; flex:0 0 auto; width:76px; height:76px; border-radius:50%; display:grid; place-items:center; background:conic-gradient(var(--lime) calc(var(--p) * 1%), rgba(255,255,255,.12) 0); position:relative; }
     .ring::before { content:""; position:absolute; inset:8px; border-radius:50%; background:var(--forest); }
     .ring b { position:relative; font-size:15px; }
@@ -72,8 +71,8 @@
     .date-pill { display:inline-flex; gap:6px; align-items:center; color:var(--leaf); background:#e7f1e8; border-radius:999px; padding:7px 10px; font-size:11px; font-weight:900; }
     .days { color:var(--coral); font-weight:900; font-size:12px; }
     .need { margin:17px 0 4px; color:var(--muted); font-size:12px; }
-    .need-amount { margin:0; font-family:"DM Serif Display", serif; font-size:34px; }
-    .need-amount small { font:700 13px "Zen Kaku Gothic New", sans-serif; }
+    .need-amount { margin:0; font-family:Georgia, "Times New Roman", serif; font-size:34px; }
+    .need-amount small { font:700 13px -apple-system, sans-serif; }
     .daily { margin:12px 0 0; padding:11px 13px; border-radius:13px; background:#e7f1e8; color:#285d47; font-size:12px; font-weight:700; line-height:1.6; }
     .pace-status { margin:10px 0 0; font-size:12px; font-weight:900; color:var(--leaf); }
     .pace-status.behind { color:var(--coral); }
@@ -95,7 +94,7 @@
     .balance-mini header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
     .balance-mini header b { display:grid; place-items:center; width:38px; height:38px; border-radius:13px; color:white; background:var(--leaf); font-size:12px; }
     .balance-mini header span { color:var(--muted); font-size:9px; text-align:right; }
-    .balance-mini strong { display:block; margin-top:12px; font-family:"DM Serif Display",serif; font-size:22px; letter-spacing:-.03em; }
+    .balance-mini strong { display:block; margin-top:12px; font-family:Georgia,"Times New Roman",serif; font-size:22px; letter-spacing:-.03em; }
     .balance-mini strong.minus { color:var(--coral); }
     .balance-mini p { margin:3px 0 0; color:var(--muted); font-size:9px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .balance-mini .tap-hint { display:block; margin-top:9px; color:var(--leaf); font-size:9px; font-weight:900; }
@@ -156,7 +155,8 @@
     .mail-save { width:100%; min-height:45px; margin-top:12px; border:0; border-radius:13px; color:white; background:var(--forest); font-size:11px; font-weight:900; }
     .mail-save:disabled { opacity:.55; }
     .sync-status { display:none; margin:10px 4px 0; padding:9px 11px; border-radius:12px; color:#285d47; background:#e7f1e8; font-size:10px; font-weight:900; line-height:1.5; }
-    .sync-status.show { display:block; }
+    .sync-status { display:block; visibility:hidden; height:48px; overflow:auto; }
+    .sync-status.show { visibility:visible; }
     .sync-status.warn { color:#844230; background:#fff0eb; }
     .rule-panel { padding:16px; border:1px solid var(--line); border-radius:24px; background:rgba(255,253,248,.68); box-shadow:0 10px 32px rgba(18,60,45,.05); }
     .rule-total { display:flex; justify-content:space-between; align-items:baseline; margin:0 2px 12px; color:var(--muted); font-size:11px; }
@@ -196,7 +196,7 @@
     .updated { margin:22px 0 0; text-align:center; color:var(--muted); font-size:9px; }
     .fab { position:fixed; z-index:10; left:50%; bottom:calc(18px + env(safe-area-inset-bottom)); transform:translateX(-50%); width:min(calc(100% - 36px),464px); min-height:58px; border:0; border-radius:18px; color:white; background:var(--forest); box-shadow:0 15px 40px rgba(18,60,45,.25); font-weight:900; font-size:15px; letter-spacing:.02em; }
     .fab:active { transform:translateX(-50%) scale(.98); }
-    .overlay { position:fixed; z-index:20; inset:0; display:none; align-items:flex-end; justify-content:center; background:rgba(11,28,22,.48); backdrop-filter:blur(4px); }
+    .overlay { position:fixed; z-index:20; inset:0; display:none; align-items:flex-end; justify-content:center; background:rgba(11,28,22,.48);  }
     .overlay.open { display:flex; animation:fade .2s ease; }
     .sheet { width:min(100%,500px); max-height:92vh; overflow:auto; padding:22px 20px calc(22px + env(safe-area-inset-bottom)); border-radius:28px 28px 0 0; background:var(--paper); animation:rise .28s ease; }
     @keyframes fade { from { opacity:0; } }
@@ -221,7 +221,7 @@
     .day-flow .expense { color:var(--coral); }
     .day-balance { text-align:right; }
     .day-balance span { display:block; color:var(--muted); font-size:8px; }
-    .day-balance b { display:block; margin-top:2px; font-family:"DM Serif Display",serif; font-size:15px; white-space:nowrap; }
+    .day-balance b { display:block; margin-top:2px; font-family:Georgia,"Times New Roman",serif; font-size:15px; white-space:nowrap; }
     .day-breakdown { grid-column:2 / -1; display:flex; flex-wrap:wrap; gap:5px; margin-top:-3px; }
     .day-breakdown span { padding:4px 7px; border-radius:999px; color:#52635d; background:#ebe5d9; font-size:8px; }
     .form-sheet { height:min(92vh,850px); max-height:calc(var(--form-viewport-height,100dvh) - env(safe-area-inset-top) - 12px); display:flex; flex-direction:column; overflow:hidden; }
@@ -242,6 +242,11 @@
     /* 小さい文字の入力欄へのフォーカスによるiPhoneの自動拡大を防ぐ。 */
     input:not([type="checkbox"]):not([type="radio"]), textarea, select { font-size:16px; }
     .amount-wrap { position:relative; }
+    .amount-wrap input { padding-right:42px; font-variant-numeric:tabular-nums; }
+    .form-editing .fab { visibility:hidden; pointer-events:none; }
+    .review-save, .mail-save, .mail-tab, .mail-check { min-height:48px; touch-action:manipulation; }
+    .transaction-cancel { margin-top:16px; background:transparent; color:var(--muted); border:1px solid var(--line); }
+
     .amount-wrap::after { content:"円"; position:absolute; right:14px; top:13px; font-weight:700; }
     .save { width:100%; margin-top:20px; min-height:52px; border:0; border-radius:16px; color:white; background:var(--forest); font-weight:900; }
     .save:disabled { opacity:.55; }
@@ -372,14 +377,6 @@
   </div>
 
   <script>
-    // フォントは表示を止めずに後から読み込む（読み込み前は端末の標準フォントで即表示）。
-    (() => {
-      const fontLink = document.createElement('link');
-      fontLink.rel = 'stylesheet';
-      fontLink.href = 'https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap';
-      document.head.appendChild(fontLink);
-    })();
-
     // GitHub Pages上のホーム画面アプリとして開いた場合は、google.script.runの代わりにJSON APIを呼ぶ。
     // Google版（HtmlService）では本物のgoogle.script.runがあるため、この切替は使われない。
     const IS_STANDALONE_SITE = !(window.google && window.google.script && window.google.script.run);
@@ -479,7 +476,12 @@
     }
 
     const HOUSEHOLD_FORM_URL = 'https://docs.google.com/forms/d/1jVfgbooPMMyNgVU-26soQHvtfQsee11KNCYaPwtp_Rw/viewform?embedded=true';
-    const yen = value => new Intl.NumberFormat('ja-JP').format(Number(value || 0));
+    const yenFormatter = new Intl.NumberFormat('ja-JP');
+    const yen = value => yenFormatter.format(Number(value || 0));
+    function readMoneyInput(input) {
+      const value = String(input?.value || '').normalize('NFKC').replace(/[,\s¥￥円]/g, '');
+      return /^\d{1,8}$/.test(value) ? Number(value) : NaN;
+    }
     const prettyDate = key => {
       const [y,m,d] = key.split('-');
       return `${Number(m)}月${Number(d)}日`;
@@ -502,6 +504,81 @@
     let outboxSending = false;
     let outboxRetryTimer = null;
     let refreshAfterSaveTimer = null;
+
+    // 編集中のDOMと行モデルはセットで保持し、通信完了で入力先を入れ替えない。
+    const deferredPanels = new Map();
+    const submittedCardEdits = new Map();
+    let pressedTarget = null;
+    function panelRoot(id) { return id === 'summary' ? document.querySelector('.app') : el(id); }
+    function panelIsEditing(id) {
+      const root = panelRoot(id);
+      if (!root) return false;
+      const active = document.activeElement;
+      return Boolean((active && document.querySelector('.app').contains(active) && active.matches('input,select,textarea')) ||
+        (pressedTarget && root.contains(pressedTarget)) ||
+        root.querySelector('[data-dirty="true"], [data-save-id], .rule-card:not([data-saved]) .rule-confirm.open'));
+    }
+    function deferPanelUpdate(id, update) {
+      if (panelIsEditing(id)) { deferredPanels.set(id, update); return true; }
+      deferredPanels.delete(id);
+      return false;
+    }
+    function flushDeferredPanels() {
+      let changed = false;
+      for (const id of ['reviewList','mailList','ruleList','summary']) {
+        const update = deferredPanels.get(id);
+        if (update && !panelIsEditing(id)) { deferredPanels.delete(id); update(); changed = true; }
+      }
+      if (changed && currentData?.summary) saveCachedData(currentData);
+    }
+    function settleCardEdits(ids, applied) {
+      const wanted = new Set(ids || []);
+      document.querySelectorAll('[data-save-id]').forEach(card => {
+        if (!wanted.has(card.dataset.saveId)) return;
+        const saveId = card.dataset.saveId;
+        delete card.dataset.saveId;
+        const entry = submittedCardEdits.get(saveId);
+        if (applied) {
+          delete card.dataset.dirty;
+          card.dataset.saved = 'true';
+          card.querySelectorAll('button,input,select,textarea').forEach(button => { button.disabled = true; });
+          const done = card.querySelector(entry?.kind === 'transaction-cancel' ? '[data-action="cancel-review"], [data-action="cancel-mail"]' : '[data-action="save-review"], [data-action="save-mail"], [data-action="rule-cancel"]');
+          if (done) done.textContent = entry?.kind === 'transaction-cancel' ? (entry.payload.cancelled ? '取り消し済み' : '復元済み') : '反映済み';
+        }
+        if (entry && applied && (entry.kind === 'review' || entry.kind === 'mail')) {
+          const row = [...(currentData?.review?.transactions || []), ...mailRows].find(row => row.key === entry.payload.key);
+          if (row) {
+            const oldKey = row.key;
+            Object.assign(row, entry.payload, {amount:Math.round(entry.payload.amount),needsAmount:false,confirmed:entry.kind === 'review' || entry.payload.confirmed});
+            const parts = row.key.split('|'); parts[3] = String(row.amount); row.key = parts.join('|');
+            if (row.confirmed || row.item) { markSaved(oldKey); markSaved(row.key); }
+          }
+        }
+        submittedCardEdits.delete(saveId);
+      });
+    }
+    let editingReleaseTimer = null;
+    function updateEditingState() {
+      clearTimeout(editingReleaseTimer);
+      if (document.activeElement?.matches('input,select,textarea')) {
+        document.body.classList.add('form-editing');
+      } else if (!pressedTarget) {
+        // 入力欄から確定ボタンへ指を移した最中にFABを再表示し、タップを奪わない。
+        editingReleaseTimer = setTimeout(() => {
+          if (!pressedTarget && !document.activeElement?.matches('input,select,textarea')) document.body.classList.remove('form-editing');
+        }, 220);
+      }
+    }
+    document.addEventListener('focusin', updateEditingState);
+    document.addEventListener('focusout', () => setTimeout(() => { updateEditingState(); flushDeferredPanels(); }, 0));
+    document.addEventListener('pointerdown', event => { pressedTarget = event.target; }, {passive:true});
+    const releasePointer = () => { pressedTarget = null; updateEditingState(); setTimeout(flushDeferredPanels, 0); };
+    document.addEventListener('pointerup', releasePointer, {passive:true});
+    document.addEventListener('pointercancel', releasePointer, {passive:true});
+    for (const eventName of ['input','change']) document.addEventListener(eventName, event => {
+      const card = event.target.closest('.review-card,.mail-card,[data-rule-index]');
+      if (card && card.dataset.dirty !== 'true' && event.target.matches('input,select,textarea')) card.dataset.dirty = 'true';
+    }, {passive:true});
 
     function readStore(key, fallback) {
       try { return JSON.parse(localStorage.getItem(key) || 'null') || fallback; } catch (error) { return fallback; }
@@ -539,9 +616,12 @@
 
     function enqueueEdit(kind, payload) {
       const outbox = readStore(OUTBOX_KEY, []);
-      outbox.push({ id: newEditId(), kind: kind, payload: payload, createdAt: Date.now() });
+      const id = newEditId();
+      submittedCardEdits.set(id, {kind:kind,payload:payload});
+      outbox.push({ id: id, kind: kind, payload: payload, createdAt: Date.now() });
       writeStore(OUTBOX_KEY, outbox);
       flushOutbox();
+      return id;
     }
 
     function flushOutbox() {
@@ -556,6 +636,7 @@
         .withSuccessHandler(result => {
           const doneIds = new Set((result.accepted || []).concat((result.rejected || []).map(item => item.id)));
           writeStore(OUTBOX_KEY, readStore(OUTBOX_KEY, []).filter(item => !doneIds.has(item.id)));
+          settleCardEdits((result.rejected || []).map(item => item.id), false);
           if ((result.rejected || []).length) resetCancelButtons();
           (result.rejected || []).forEach(item => {
             const edit = sending.find(entry => entry.id === item.id);
@@ -582,6 +663,8 @@
       setSyncStatus('シートへ反映中…（このまま閉じても大丈夫です）');
       google.script.run
         .withSuccessHandler(result => {
+          settleCardEdits(result.applied || [], true);
+          settleCardEdits((result.failed || []).map(item => item.id), false);
           (result.failed || []).forEach(item => {
             if (item.key) unmarkSaved(item.key);
             toast(item.message || '反映できない明細がありました');
@@ -597,11 +680,13 @@
             setSyncStatus('スプレッドシートへの反映が完了しました');
           }
           resetCancelButtons();
+          flushDeferredPanels();
           if (mailLoaded) loadMailPage(true);
           clearTimeout(refreshAfterSaveTimer);
           refreshAfterSaveTimer = setTimeout(() => loadData(true), 600);
         })
         .withFailureHandler(() => {
+          settleCardEdits(Array.from(document.querySelectorAll('[data-save-id]'), card => card.dataset.saveId), false);
           resetCancelButtons();
           setSyncStatus('シートへの反映を確認できませんでした。再度更新し、登録状態を確認してください。', true);
         })
@@ -657,7 +742,6 @@
         ['要確認', requestSavingsData('getSavingsReviewData').then(review => {
           if (cycle !== refreshCycle) return;
           if (!currentData) currentData = {};
-          currentData.review = review;
           renderReview(review);
           writeStore(REVIEW_CACHE_KEY, { savedAt: Date.now(), review: review });
           if (currentData.summary) saveCachedData(currentData);
@@ -665,7 +749,6 @@
         ['固定費', requestSavingsData('getSavingsFixedRules').then(rules => {
           if (cycle !== refreshCycle) return;
           if (!currentData) currentData = {};
-          currentData.rules = rules;
           renderRules(rules);
           if (currentData.summary) saveCachedData(currentData);
         })]
@@ -682,7 +765,7 @@
           status.textContent = `更新できませんでした（${failures.map(item => item.name).join('・')}）。${failures[0].message}`;
         } else {
           const time = new Intl.DateTimeFormat('ja-JP', { timeZone:'Asia/Tokyo', hour:'2-digit', minute:'2-digit', second:'2-digit' }).format(new Date());
-          status.textContent = `更新しました · ${time}${unchanged ? '（残高などの数値に変更はありません）' : ''}`;
+          status.textContent = deferredPanels.size ? '最新情報を取得しました。編集中の表示は保存後に更新します。' : `更新しました · ${time}${unchanged ? '（残高などの数値に変更はありません）' : ''}`;
         }
       } finally {
         clearTimeout(slow);
@@ -696,12 +779,13 @@
     }
 
     function render(data, options) {
+      if (deferPanelUpdate('summary', () => render(data, options))) return;
       const previousReview = currentData && currentData.review;
       const previousRules = currentData && currentData.rules;
       currentData = data;
       if (!currentData.review && previousReview) currentData.review = previousReview;
       if (!currentData.rules && previousRules) currentData.rules = previousRules;
-      if (currentData.rules) renderRules(currentData.rules);
+      if (options?.cached && currentData.rules) renderRules(currentData.rules);
       const s = data.summary;
       el('prepared').textContent = yen(s.currentBalance);
       el('currentSavings').textContent = `${yen(s.prepared)}円`;
@@ -748,7 +832,7 @@
         return `<article class="${classes}"><div class="month">${month}月</div><div><h3>支払い後 ${balance}</h3><p>${escapeHtml(item.payment)} · ${escapeHtml(item.estimate)}</p></div><b>${item.achieved ? '✓' : status}</b></article>`;
       }).join('');
 
-      if (currentData.review) renderReview(currentData.review);
+      if (options?.cached && currentData.review) renderReview(currentData.review);
 
       el('recordCount').textContent = data.records.length ? `${data.records.length}件` : '';
       el('activity').innerHTML = data.records.length ? data.records.slice(0,8).map(record => {
@@ -779,6 +863,8 @@
     }
 
     function renderReview(review) {
+      if (deferPanelUpdate('reviewList', () => renderReview(review))) return;
+      if (currentData) currentData.review = review;
       const saved = savedKeys();
       // 端末に残った以前のデータにも、サーバーと同じ14日間を適用する（日本時間）。
       const todayKey = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -819,7 +905,7 @@
         const fixedRuleControl = row.canRegisterFixed
           ? `<label class="fixed-toggle"><input type="checkbox" data-role="fixed-toggle" data-index="${index}"><span>今後も同じ支払いを固定費ルールに登録</span></label>`
           : (row.fixedRegistrationNote ? `<p class="review-product">${escapeHtml(row.fixedRegistrationNote)}</p>` : '');
-        const amountInput = `<span class="field-label">金額</span><div class="amount-wrap"><input data-role="amount" type="number" inputmode="numeric" min="1" max="10000000" placeholder="金額を入力" value="${Number(row.failedEdit?.amount || row.amount) > 0 ? escapeHtml(String(row.failedEdit?.amount || row.amount)) : ''}"></div>`;
+        const amountInput = `<span class="field-label">金額</span><div class="amount-wrap"><input data-role="amount" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="16" autocomplete="off" enterkeyhint="done" placeholder="金額を入力" value="${Number(row.failedEdit?.amount || row.amount) > 0 ? escapeHtml(String(row.failedEdit?.amount || row.amount)) : ''}"></div>`;
         return `<article class="review-card" data-review-index="${index}">
           <div class="review-head"><div><h3>${escapeHtml(row.store || row.description || '名称なし')}</h3><p>${prettyDate(row.date)} ${escapeHtml(row.time)} · ${escapeHtml(row.cashflow)}</p></div><b class="review-amount">${row.needsAmount ? '金額未入力' : (row.cashflow === '収入' ? '+' : '−') + yen(row.amount) + '円'}</b></div>
           ${detail ? `<p class="review-product">${escapeHtml(detail)}</p>` : ''}
@@ -830,7 +916,7 @@
           <select data-role="item" data-index="${index}">${optionList(options, selectedItem, '項目を選択')}</select>
           ${fixedFields}${fixedRuleControl}
           <button class="review-save" type="button" data-action="save-review" data-index="${index}">この明細を確定</button>
-          <button class="mail-save" type="button" data-action="cancel-review" data-index="${index}">この明細を取り消す</button>
+          <button class="mail-save transaction-cancel" type="button" data-action="cancel-review" data-index="${index}">この明細を取り消す</button>
         </article>`;
       }).join('');
     }
@@ -840,12 +926,21 @@
       if (!row || !button) return;
       button.disabled = true;
       button.textContent = '反映中…';
-      enqueueEdit('transaction-cancel', { key: row.key, cancelled: cancelled });
+      const card = button.closest('.review-card,.mail-card');
+      card?.querySelectorAll('button,input,select,textarea').forEach(control => { control.disabled = true; });
+      const id = enqueueEdit('transaction-cancel', { key: row.key, cancelled: cancelled });
+      if (card) card.dataset.saveId = id;
     }
 
     function resetCancelButtons() {
-      document.querySelectorAll('[data-action="save-review"]').forEach(button => { button.disabled = false; button.textContent = 'この明細を確定'; });
+      document.querySelectorAll('.review-card,.mail-card,.rule-card').forEach(card => {
+        if (!card.dataset.saveId && !card.dataset.saved) card.querySelectorAll('input,select,textarea').forEach(control => { control.disabled = false; });
+      });
+      document.querySelectorAll('[data-action="rule-cancel"]').forEach(button => { if (!button.closest('[data-save-id],[data-saved]')) { button.disabled = false; button.textContent = '解約を確定'; } });
+      document.querySelectorAll('[data-action="save-mail"]').forEach(button => { if (!button.closest('[data-save-id],[data-saved]')) { button.disabled = false; button.textContent = 'この行の変更を反映'; } });
+      document.querySelectorAll('[data-action="save-review"]').forEach(button => { if (!button.closest('[data-save-id],[data-saved]')) { button.disabled = false; button.textContent = 'この明細を確定'; } });
       document.querySelectorAll('[data-action="cancel-review"], [data-action="cancel-mail"]').forEach(button => {
+        if (button.closest('[data-save-id],[data-saved]')) return;
         button.disabled = false;
         button.textContent = button.dataset.restore === 'true' ? '取り消しを戻す' : 'この明細を取り消す';
       });
@@ -859,24 +954,24 @@
       const payload = {
         key: row.key,
         cashflow: row.cashflow,
-        amount: Number(card.querySelector('[data-role="amount"]')?.value || row.amount || 0),
+        amount: readMoneyInput(card.querySelector('[data-role="amount"]')),
         item: card.querySelector('[data-role="item"]').value,
         registerFixed: Boolean(fixedToggle && fixedToggle.checked),
         fixedCategory: card.querySelector('[data-role="fixed-category"]')?.value || '',
         fixedName: card.querySelector('[data-role="fixed-name"]')?.value || '',
         fixedInterval: Number(card.querySelector('[data-role="fixed-interval"]')?.value || 1)
       };
-      if (payload.amount <= 0) return toast('金額を入力してください');
+      if (!Number.isFinite(payload.amount) || payload.amount <= 0 || payload.amount > 10000000) return toast('金額は1円〜1,000万円で入力してください');
       if (!payload.item) return toast('項目を選んでください');
       if ((payload.item === '固定費' || payload.registerFixed) && (!payload.fixedCategory || !payload.fixedName)) {
         setSyncStatus('まだ保存していません。固定費の内訳と名前を入力してください。', true);
         card.querySelector(!payload.fixedCategory ? '[data-role="fixed-category"]' : '[data-role="fixed-name"]')?.focus();
         return;
       }
-      card.querySelectorAll('button').forEach(item => { item.disabled = true; });
+      card.querySelectorAll('button,input,select,textarea').forEach(item => { item.disabled = true; });
       button.textContent = '反映中…';
       // 入力欄を残したまま待ち、実際に適用された後の再取得で要確認から外す。
-      enqueueEdit('review', payload);
+      card.dataset.saveId = enqueueEdit('review', payload);
       toast('保存を送信しています');
     }
 
@@ -890,6 +985,8 @@
     }
 
     function renderRules(rules) {
+      if (deferPanelUpdate('ruleList', () => renderRules(rules))) return;
+      if (currentData) currentData.rules = rules;
       const saved = savedKeys();
       const active = (rules.active || []).filter(rule => !saved[`rule:${rule.key}`]);
       const total = active.reduce((sum, rule) => sum + (rule.status === '一時停止' ? 0 : Math.round(rule.amount / rule.interval)), 0);
@@ -932,12 +1029,10 @@
       const endDate = card.querySelector('[data-role="rule-end"]').value;
       if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) return toast('解約日を選んでください');
       if (rule.start && endDate < rule.start) return toast('解約日が利用開始日より前です');
-      markSaved(`rule:${rule.key}`);
-      enqueueEdit('rule-cancel', { ruleKey: rule.key, endDate: endDate });
-      currentData.rules.ended = [Object.assign({}, rule, { end: endDate })].concat(currentData.rules.ended || []).slice(0, 8);
-      renderRules(currentData.rules);
-      saveCachedData(currentData);
-      toast(`${rule.name}を解約しました`);
+      card.querySelectorAll('button,input,select,textarea').forEach(button => { button.disabled = true; });
+      card.querySelector('[data-action="rule-cancel"]').textContent = '反映中…';
+      card.dataset.saveId = enqueueEdit('rule-cancel', { ruleKey: rule.key, endDate: endDate });
+      toast('解約を送信しています');
     }
 
     function switchMailTab(name) {
@@ -954,8 +1049,7 @@
     function loadMailPage(reset, cycle) {
       if (reset) {
         mailPage = 1;
-        mailRows = [];
-        el('mailList').innerHTML = '<div class="detail-loading">メール用シートを読み込んでいます…</div>';
+        if (!mailLoaded) el('mailList').innerHTML = '<div class="detail-loading">メール用シートを読み込んでいます…</div>';
         el('loadMoreMail').hidden = true;
       }
       const request = requestSavingsData('getSavingsMailPage', mailPage).then(data => {
@@ -969,6 +1063,7 @@
     }
 
     function renderMailPage(data, append) {
+      if (deferPanelUpdate('mailList', () => renderMailPage(data, append))) return;
       mailLoaded = true;
       mailOptions = data;
       // 一覧の再読込では先頭から置換する。旧件数を足すと保存対象が範囲外になる。
@@ -985,7 +1080,7 @@
       if (row.cancelled) return `<article class="mail-card" data-mail-index="${index}">
         <div class="mail-card-head"><div><h3>${escapeHtml(row.store)}</h3><p>${prettyDate(row.date)} ${escapeHtml(row.time)} · ${escapeHtml(row.cashflow)}</p></div></div>
         <p class="mail-meta">取り消し済み・集計対象外</p>
-        <button class="mail-save" type="button" data-action="cancel-mail" data-restore="true" data-index="${index}">取り消しを戻す</button>
+        <button class="mail-save transaction-cancel" type="button" data-action="cancel-mail" data-restore="true" data-index="${index}">取り消しを戻す</button>
       </article>`;
       const itemChoices = row.cashflow === '収入' ? mailOptions.itemOptions.income : orderItemOptions(mailOptions.itemOptions.expense);
       const itemPlaceholder = row.suggestedItem ? `自動のまま（${itemDisplayName(row.suggestedItem)}）` : '未設定';
@@ -995,7 +1090,7 @@
         <div class="mail-card-head"><div><h3>${escapeHtml(row.store)}</h3><p>${prettyDate(row.date)} ${escapeHtml(row.time)}</p></div><b>${row.needsAmount ? '金額未入力' : (row.cashflow === '収入' ? '+' : '−') + yen(row.amount) + '円'}</b></div>
         ${detail ? `<p class="mail-meta">${escapeHtml(detail)}</p>` : ''}
         <div class="mail-badges">${row.suggestedItem ? `<span class="mail-badge">自動：${escapeHtml(itemDisplayName(row.suggestedItem))}</span>` : ''}${row.reason ? `<span class="mail-badge">${escapeHtml(row.reason)}</span>` : ''}${row.confirmed ? '<span class="mail-badge ok">確認済み</span>' : ''}${row.fixedStatus ? `<span class="mail-badge">${escapeHtml(row.fixedStatus)}</span>` : ''}</div>
-        <span class="field-label">金額</span><div class="amount-wrap"><input data-role="mail-amount" type="number" inputmode="numeric" min="1" max="10000000" placeholder="金額を入力" value="${row.amount > 0 ? escapeHtml(String(row.amount)) : ''}"></div>
+        <span class="field-label">金額</span><div class="amount-wrap"><input data-role="mail-amount" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="16" autocomplete="off" enterkeyhint="done" placeholder="金額を入力" value="${row.amount > 0 ? escapeHtml(String(row.amount)) : ''}"></div>
         <div class="mail-edit-grid">
           <div><span class="field-label">収支区分</span><select data-role="mail-cashflow"><option value="支出"${row.cashflow === '支出' ? ' selected' : ''}>支出</option><option value="収入"${row.cashflow === '収入' ? ' selected' : ''}>収入</option></select></div>
           <div><span class="field-label">項目（今回の上書き）</span><select data-role="mail-item">${optionList(itemChoices, row.item, itemPlaceholder)}</select></div>
@@ -1011,7 +1106,7 @@
           <div class="wide"><span class="field-label">固定費名</span><input type="text" data-role="mail-fixed-name" maxlength="100" value="${escapeHtml(row.fixedName)}"></div>
         </div>
         <button class="mail-save" type="button" data-action="save-mail" data-index="${index}">この行の変更を反映</button>
-        <button class="mail-save" type="button" data-action="cancel-mail" data-index="${index}">この明細を取り消す</button>
+        <button class="mail-save transaction-cancel" type="button" data-action="cancel-mail" data-index="${index}">この明細を取り消す</button>
       </article>`;
     }
 
@@ -1022,7 +1117,7 @@
       const payload = {
         key: row.key,
         cashflow: card.querySelector('[data-role="mail-cashflow"]').value,
-        amount: Number(card.querySelector('[data-role="mail-amount"]')?.value || row.amount || 0),
+        amount: readMoneyInput(card.querySelector('[data-role="mail-amount"]')),
         item: card.querySelector('[data-role="mail-item"]').value,
         confirmed: card.querySelector('[data-role="mail-confirmed"]').checked,
         fixedRegistered: Boolean(card.querySelector('[data-role="mail-fixed-toggle"]')?.checked),
@@ -1030,31 +1125,15 @@
         fixedName: card.querySelector('[data-role="mail-fixed-name"]').value,
         fixedInterval: Number(card.querySelector('[data-role="mail-fixed-interval"]').value || 1)
       };
-      if (payload.amount <= 0) return toast('金額を入力してください');
+      if (!Number.isFinite(payload.amount) || payload.amount <= 0 || payload.amount > 10000000) return toast('金額は1円〜1,000万円で入力してください');
       if ((payload.item === '固定費' || payload.fixedRegistered) && (!payload.fixedCategory || !payload.fixedName)) {
         setSyncStatus('まだ保存していません。固定費の内訳と名前を入力してください。', true);
         card.querySelector(!payload.fixedCategory ? '[data-role="mail-fixed-category"]' : '[data-role="mail-fixed-name"]')?.focus();
         return;
       }
-      enqueueEdit('mail', payload);
-      if (payload.confirmed || payload.item) markSaved(row.key);
-      // 画面上の行をすぐ更新する。同じ行を続けて編集できるよう、照合キーも新しい金額へ合わせる。
-      const keyParts = String(row.key).split('|');
-      keyParts[3] = String(Math.round(payload.amount));
-      Object.assign(row, {
-        key: keyParts.join('|'),
-        amount: Math.round(payload.amount),
-        needsAmount: false,
-        cashflow: payload.cashflow,
-        item: payload.item,
-        confirmed: payload.confirmed,
-        fixedRegistered: payload.fixedRegistered,
-        fixedCategory: payload.fixedCategory,
-        fixedName: payload.fixedName,
-        fixedInterval: payload.fixedInterval
-      });
-      card.outerHTML = renderMailCard(row, index);
-      if (currentData && currentData.review) renderReview(currentData.review);
+      card.querySelectorAll('button,input,select,textarea').forEach(item => { item.disabled = true; });
+      button.textContent = '反映中…';
+      card.dataset.saveId = enqueueEdit('mail', payload);
       toast('保存を送信しています');
     }
 
@@ -1108,13 +1187,22 @@
       const viewport = window.visualViewport;
       const bounds = { left:viewport ? viewport.offsetLeft : 0, top:viewport ? viewport.offsetTop : 0,
         width:viewport ? viewport.width : window.innerWidth, height:viewport ? viewport.height : window.innerHeight };
-      Object.keys(bounds).forEach(key => overlay.style.setProperty('--form-viewport-' + key, bounds[key] + 'px'));
+      Object.keys(bounds).forEach(key => {
+        const property = '--form-viewport-' + key;
+        const value = bounds[key] + 'px';
+        if (overlay.style.getPropertyValue(property) !== value) overlay.style.setProperty(property, value);
+      });
+    }
+    let formViewportFrame = null;
+    function scheduleFormViewportFit() {
+      if (formViewportFrame !== null) return;
+      formViewportFrame = requestAnimationFrame(() => { formViewportFrame = null; fitHouseholdFormViewport(); });
     }
     if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', fitHouseholdFormViewport, {passive:true});
-      window.visualViewport.addEventListener('scroll', fitHouseholdFormViewport, {passive:true});
+      window.visualViewport.addEventListener('resize', scheduleFormViewportFit, {passive:true});
+      window.visualViewport.addEventListener('scroll', scheduleFormViewportFit, {passive:true});
     }
-    window.addEventListener('resize', fitHouseholdFormViewport, {passive:true});
+    window.addEventListener('resize', scheduleFormViewportFit, {passive:true});
 
     function openHouseholdForm() {
       const frame = el('householdFormFrame');
@@ -1173,12 +1261,12 @@
     });
     el('reviewList').addEventListener('change', event => {
       if (!event.target.matches('[data-role="fixed-toggle"], [data-role="item"], [data-role="fixed-category"]')) return;
-      const index = Number(event.target.dataset.index);
-      const card = document.querySelector(`[data-review-index="${index}"]`);
+      const card = event.target.closest('[data-review-index]');
+      const index = Number(card?.dataset.reviewIndex);
       if (!card) return;
       const isFixedItem = card.querySelector('[data-role="item"]').value === '固定費';
       const registerRule = card.querySelector('[data-role="fixed-toggle"]')?.checked;
-      el(`fixedFields${index}`).classList.toggle('open', isFixedItem || registerRule);
+      el(`fixedFields${index}`)?.classList.toggle('open', isFixedItem || registerRule);
       if (event.target.matches('[data-role="fixed-category"]') && event.target.value === '家賃') {
         card.querySelector('[data-role="fixed-name"]').value = '家賃';
       }
@@ -1199,7 +1287,7 @@
       const index = Number(card.dataset.mailIndex);
       if (event.target.matches('[data-role="mail-fixed-toggle"], [data-role="mail-item"]')) {
         const isFixedItem = card.querySelector('[data-role="mail-item"]').value === '固定費';
-        const registerRule = card.querySelector('[data-role="mail-fixed-toggle"]').checked;
+        const registerRule = card.querySelector('[data-role="mail-fixed-toggle"]')?.checked;
         el(`mailFixedFields${index}`).classList.toggle('open', isFixedItem || registerRule);
       }
       if (event.target.matches('[data-role="mail-fixed-category"]') && event.target.value === '家賃') {
@@ -1230,6 +1318,8 @@
       } else if (button.dataset.action === 'rule-close') {
         confirmBox.classList.remove('open');
         card.querySelector('[data-action="rule-open"]').hidden = false;
+        delete card.dataset.dirty;
+        setTimeout(flushDeferredPanels, 0);
       } else if (button.dataset.action === 'rule-cancel') {
         cancelRule(Number(card.dataset.ruleIndex), card);
       }
