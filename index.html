@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-amGfR50ex55kTV/ACySatYjrYviFqOpKkQS4vDPlm9A='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-/k0tQ8x+FNYuFYt4EdwyJjMVN01G9XA+5zuPlrm0uSw='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
@@ -388,6 +388,7 @@
   </div>
 
   <script>
+    const APP_SHELL_VERSION = 49;
     // GitHub Pages上のホーム画面アプリとして開いた場合は、google.script.runの代わりにJSON APIを呼ぶ。
     // Google版（HtmlService）では本物のgoogle.script.runがあるため、この切替は使われない。
     const IS_STANDALONE_SITE = !(window.google && window.google.script && window.google.script.run);
@@ -773,6 +774,36 @@
     }
 
     let refreshCycle = 0;
+    let latestShellVersion = APP_SHELL_VERSION;
+    async function checkAppShellUpdate() {
+      if (!IS_STANDALONE_SITE) return false;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 2500);
+      try {
+        const response = await fetch('version.json', {cache:'no-store',signal:controller.signal});
+        if (!response.ok) return false;
+        const manifest = await response.json();
+        if (!Number.isInteger(manifest.version) || manifest.version <= APP_SHELL_VERSION) return false;
+        latestShellVersion = manifest.version;
+        // 入力・保存・フォーム操作中は画面を再読込しない。
+        const busy = pressedTarget || readStore(OUTBOX_KEY, []).length ||
+          document.activeElement?.matches('input,select,textarea') ||
+          document.querySelector('.app [data-dirty="true"],.app [data-save-id],.rule-card:not([data-saved]) .rule-confirm.open,#householdFormOverlay.open');
+        if (busy) {
+          el('refreshStatus').textContent = '新しい画面があります。入力を保存してから更新してください。';
+          return false;
+        }
+        const attemptKey = 'hapalua-shell-update-attempt';
+        const previous = JSON.parse(sessionStorage.getItem(attemptKey) || 'null');
+        if (previous?.version === manifest.version && Date.now() - previous.at < 30000) return false;
+        sessionStorage.setItem(attemptKey, JSON.stringify({version:manifest.version,at:Date.now()}));
+        const target = new URL(location.href);
+        target.searchParams.set('app', String(manifest.version));
+        location.replace(target.href);
+        return true;
+      } catch (error) { return false; }
+      finally { clearTimeout(timeout); }
+    }
     function requestSavingsData(method, ...args) {
       return new Promise((resolve, reject) => {
         google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[method](...args);
@@ -780,6 +811,7 @@
     }
 
     async function loadData(forceFresh) {
+      checkAppShellUpdate();
       const cycle = ++refreshCycle;
       const button = el('refresh');
       const status = el('refreshStatus');
@@ -825,7 +857,7 @@
           status.textContent = `更新できませんでした（${failures.map(item => item.name).join('・')}）。${failures[0].message}`;
         } else {
           const time = new Intl.DateTimeFormat('ja-JP', { timeZone:'Asia/Tokyo', hour:'2-digit', minute:'2-digit', second:'2-digit' }).format(new Date());
-          status.textContent = deferredPanels.size ? '最新情報を取得しました。編集中の表示は保存後に更新します。' : `更新しました · ${time}${unchanged ? '（残高などの数値に変更はありません）' : ''}`;
+          status.textContent = latestShellVersion > APP_SHELL_VERSION ? '新しい画面があります。入力を保存してから更新してください。' : deferredPanels.size ? '最新情報を取得しました。編集中の表示は保存後に更新します。' : `更新しました · ${time}${unchanged ? '（残高などの数値に変更はありません）' : ''}`;
         }
       } finally {
         clearTimeout(slow);

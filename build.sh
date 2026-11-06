@@ -5,7 +5,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 python3 - <<'PY'
-import base64, hashlib, re
+import base64, hashlib, re, json
 src = open('../gas-open-project/SavingsApp.html', encoding='utf-8').read()
 scripts = re.findall(r'<script>([\s\S]*?)</script>', src)
 assert len(scripts) == 1, 'インラインスクリプトは1つだけの想定です'
@@ -16,7 +16,7 @@ csp = '; '.join([
     "style-src 'unsafe-inline' https://fonts.googleapis.com",
     "font-src https://fonts.gstatic.com",
     "img-src 'self' data:",
-    "connect-src https://script.google.com https://script.googleusercontent.com",
+    "connect-src 'self' https://script.google.com https://script.googleusercontent.com",
     "frame-src https://docs.google.com",
     "worker-src 'self'",
     "base-uri 'none'",
@@ -32,6 +32,11 @@ head = '\n'.join([
 ])
 marker = '<meta name="apple-mobile-web-app-title" content="旅貯金">'
 assert src.count(marker) == 1
-open('index.html', 'w', encoding='utf-8').write(src.replace(marker, head))
+output = src.replace(marker, head)
+open('index.html', 'w', encoding='utf-8').write(output)
+# 古いSWのキャッシュにないURLから、同じ最新画面を開ける入口。
+open('refresh.html', 'w', encoding='utf-8').write(output)
+version = int(re.search(r'const APP_SHELL_VERSION = (\d+);', src).group(1))
+open('version.json', 'w', encoding='utf-8').write(json.dumps({'version':version})+'\n')
 PY
 echo "index.html を更新しました"
