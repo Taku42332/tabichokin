@@ -1,6 +1,6 @@
 // 画面を開く際は最新版を優先し、通信が遅い/オフラインなら保存済み画面を使う。
 // 家計データ（script.google.com）は保存しない。
-const CACHE = 'hapalua-shell-v23';
+const CACHE = 'hapalua-shell-v24';
 const SHELL = ['./', './index.html', './icon.png?v=2'];
 
 self.addEventListener('install', event => {
