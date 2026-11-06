@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-cdp2KwSO1nxNb5DlIv7xxBkrsQDzDekmZG8pRPC3WLA='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-uf1PfR/fssdshj9PgaZJpJZJhJkjpPelbe9Lam1ZBf8='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
@@ -287,9 +287,9 @@
         <div class="ring" id="ring"><b id="percent">0%</b></div>
       </div>
       <div class="balance-change">
-        <p class="balance-change-title">前月末からの残高の増減</p>
+        <p class="balance-change-title">今月末の残高増減予定（前月末比）</p>
         <p class="balance-change-amount" id="balanceChange">—</p>
-        <p class="balance-change-detail" id="balanceChangeDetail">前月末と今日の残高を比較します。</p>
+        <p class="balance-change-detail" id="balanceChangeDetail">月末までの収入・支出予定を含めて比較します。</p>
       </div>
       <div class="hero-sub">
         <div><span>残高＋旅行費支払い済み</span><b id="currentSavings">0円</b></div>
@@ -853,13 +853,13 @@
       el('prepared').textContent = yen(s.currentBalance);
       const comparison = s.monthComparison;
       const change = comparison?.change;
-      const comparable = Number.isFinite(change) && Number.isFinite(comparison?.previousBalance);
-      el('balanceChange').textContent = comparable ? `${change > 0 ? '＋' : change < 0 ? '−' : '±'}${yen(Math.abs(change))}円${change > 0 ? ' 増加' : change < 0 ? ' 減少' : ' 変化なし'}` : '比較データなし';
+      const comparable = comparison?.basis === 'month-end-forecast' && Number.isFinite(change) && Number.isFinite(comparison?.previousBalance) && Number.isFinite(comparison?.forecastBalance);
+      el('balanceChange').textContent = comparable ? `${change > 0 ? '＋' : change < 0 ? '−' : '±'}${yen(Math.abs(change))}円${change > 0 ? ' 増加予定' : change < 0 ? ' 減少予定' : ' 増減なしの予定'}` : '比較データなし';
       el('balanceChange').classList.toggle('positive', comparable && change > 0);
       el('balanceChange').classList.toggle('negative', comparable && change < 0);
       el('balanceChangeDetail').textContent = comparable
-        ? `${prettyDate(comparison.fromDate)} ${yen(comparison.previousBalance)}円 → ${prettyDate(comparison.toDate)} ${yen(s.currentBalance)}円`
-        : '前月末の残高を取得できないため、増減を表示できません。';
+        ? `${prettyDate(comparison.fromDate)} ${yen(comparison.previousBalance)}円 → ${prettyDate(comparison.toDate)} ${yen(comparison.forecastBalance)}円の見込み（予定収入・支出込み）`
+        : '更新すると、前月末と今月末見込みの比較を表示します。';
       el('currentSavings').textContent = `${yen(s.prepared)}円`;
       el('paid').textContent = `${yen(s.paid)}円`;
       el('percent').textContent = `${s.progressPercent}%`;
