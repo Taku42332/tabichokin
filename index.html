@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-uf1PfR/fssdshj9PgaZJpJZJhJkjpPelbe9Lam1ZBf8='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-amGfR50ex55kTV/ACySatYjrYviFqOpKkQS4vDPlm9A='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <title>旅貯金</title>
@@ -858,7 +858,7 @@
       el('balanceChange').classList.toggle('positive', comparable && change > 0);
       el('balanceChange').classList.toggle('negative', comparable && change < 0);
       el('balanceChangeDetail').textContent = comparable
-        ? `${prettyDate(comparison.fromDate)} ${yen(comparison.previousBalance)}円 → ${prettyDate(comparison.toDate)} ${yen(comparison.forecastBalance)}円の見込み（予定収入・支出込み）`
+        ? `${prettyDate(comparison.fromDate)} ${yen(comparison.previousBalance)}円${comparison.periodAdjustment ? '（調整後）' : ''} → ${prettyDate(comparison.toDate)} ${yen(comparison.forecastBalance)}円の見込み（予定収入・支出込み）${comparison.allocationNote ? '。' + comparison.allocationNote : ''}`
         : '更新すると、前月末と今月末見込みの比較を表示します。';
       el('currentSavings').textContent = `${yen(s.prepared)}円`;
       el('paid').textContent = `${yen(s.paid)}円`;
