@@ -19,6 +19,7 @@ csp = '; '.join([
     "connect-src 'self' https://script.google.com https://script.googleusercontent.com",
     "frame-src https://docs.google.com",
     "worker-src 'self'",
+    "manifest-src 'self'",
     "base-uri 'none'",
     "form-action 'none'",
 ])
@@ -27,6 +28,7 @@ head = '\n'.join([
     f'  <meta http-equiv="Content-Security-Policy" content="{csp}">',
     '  <link rel="apple-touch-icon" href="icon.png?v=2">',
     '  <link rel="icon" href="icon.png?v=2">',
+    '  <link rel="manifest" href="manifest.webmanifest">',
     '  <title>旅貯金</title>',
     '  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
 ])
