@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="旅貯金">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-iHMjDoMPuCovWWOYk5Atsc8zzkHY8xXlbOKtr9C9amc='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-AV6WlmbW+/nbr+EvovZ+Pn01OiYkqsibsp7c9Qe+Re4='; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; frame-src https://docs.google.com; worker-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'">
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
   <link rel="manifest" href="manifest.webmanifest">
@@ -393,7 +393,7 @@
   </div>
 
   <script>
-    const APP_SHELL_VERSION = 51;
+    const APP_SHELL_VERSION = 52;
     // GitHub Pages上のホーム画面アプリとして開いた場合は、google.script.runの代わりにJSON APIを呼ぶ。
     // Google版（HtmlService）では本物のgoogle.script.runがあるため、この切替は使われない。
     const IS_STANDALONE_SITE = !(window.google && window.google.script && window.google.script.run);
@@ -1320,7 +1320,21 @@
     }
     window.addEventListener('resize', scheduleFormViewportFit, {passive:true});
 
+    // Googleにログイン中のAndroid Chromeでは、フォームの途中でログイン確認ページが挟まり、
+    // そのページは枠内表示を拒否するため、公開用URLでも枠が拒否アイコンになる（2026-11-22 本人の実機で確認）。
+    // Androidでは枠を使わず、Chromeの別画面でフォームを開き、戻ってきたら残高を読み直す。
+    const OPEN_HOUSEHOLD_FORM_EXTERNALLY = /Android/i.test(navigator.userAgent);
+    let externalHouseholdFormOpen = false;
+    function openHouseholdFormExternally() {
+      const opened = window.open(HOUSEHOLD_FORM_PUBLIC_URL, '_blank');
+      if (!opened) return false;
+      try { opened.opener = null; } catch (error) { /* 別画面側の制限は無視する */ }
+      externalHouseholdFormOpen = true;
+      return true;
+    }
+
     function openHouseholdForm() {
+      if (OPEN_HOUSEHOLD_FORM_EXTERNALLY && openHouseholdFormExternally()) return;
       const frame = el('householdFormFrame');
       if (!frame.src) {
         frame.src = HOUSEHOLD_FORM_URL;
@@ -1461,7 +1475,12 @@
       else if (el('householdFormOverlay').classList.contains('open')) closeHouseholdForm();
     });
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') flushOutbox();
+      if (document.visibilityState !== 'visible') return;
+      flushOutbox();
+      if (externalHouseholdFormOpen) {
+        externalHouseholdFormOpen = false;
+        setTimeout(() => loadData(true), 1200);
+      }
     });
     window.addEventListener('online', flushOutbox);
     el('setupSave').addEventListener('click', () => {
